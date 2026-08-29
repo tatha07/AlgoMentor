@@ -1,0 +1,6 @@
+{
+  "name": "AlgoMentor",
+  "description": "AI-powered Data Structures and Algorithms mentor with personalized learning paths, interactive code explanation, progressive hints, savage roasts, and mock interviews.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

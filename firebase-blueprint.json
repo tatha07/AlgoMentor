@@ -1,0 +1,48 @@
+{
+  "$schema": "https://raw.githubusercontent.com/firebase/firebase-tools/master/schema/firestore-blueprint.json",
+  "entities": {
+    "users": {
+      "description": "User account profiles and progress tracking",
+      "fields": {
+        "uid": { "type": "string", "description": "User ID matching auth.uid" },
+        "email": { "type": "string", "description": "User email address" },
+        "displayName": { "type": "string", "description": "Display name" },
+        "photoURL": { "type": "string", "description": "Avatar URL" },
+        "skillLevel": { "type": "string", "description": "Assessed skill level: newbie | intermediate | pro" },
+        "preferredLanguage": { "type": "string", "description": "Preferred programming language: javascript | python | cpp | java" },
+        "streakDays": { "type": "number", "description": "Daily learning streak in days" },
+        "completedTopicIds": { "type": "array", "description": "List of mastered DSA topic IDs" },
+        "solvedProblemIds": { "type": "array", "description": "List of solved practice problem IDs" },
+        "totalPracticeTimeSeconds": { "type": "number", "description": "Total time spent practicing in seconds" },
+        "tutorTone": { "type": "string", "description": "AI Tutor tone: socratic | direct | encouraging" },
+        "createdAt": { "type": "string", "description": "ISO timestamp of account creation" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp of last update" }
+      }
+    },
+    "collabRooms": {
+      "description": "Real-time collaborative study and live coding rooms",
+      "fields": {
+        "id": { "type": "string", "description": "Unique room ID" },
+        "name": { "type": "string", "description": "Room name or title" },
+        "problemId": { "type": "string", "description": "Target DSA problem ID" },
+        "language": { "type": "string", "description": "Active coding language" },
+        "code": { "type": "string", "description": "Shared real-time code buffer" },
+        "createdBy": { "type": "string", "description": "Creator user UID" },
+        "creatorName": { "type": "string", "description": "Creator display name" },
+        "activeUsersCount": { "type": "number", "description": "Number of currently active participants" },
+        "createdAt": { "type": "string", "description": "Creation ISO timestamp" },
+        "updatedAt": { "type": "string", "description": "Last modified ISO timestamp" }
+      }
+    },
+    "collabMessages": {
+      "description": "Chat messages within collaborative study rooms",
+      "fields": {
+        "roomId": { "type": "string", "description": "Associated room ID" },
+        "userId": { "type": "string", "description": "Sender UID" },
+        "userName": { "type": "string", "description": "Sender display name" },
+        "text": { "type": "string", "description": "Message body" },
+        "timestamp": { "type": "string", "description": "ISO timestamp" }
+      }
+    }
+  }
+}
