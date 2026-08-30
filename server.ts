@@ -10,7 +10,7 @@ import { createServer as createViteServer } from 'vite';
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
@@ -676,27 +676,29 @@ async function startServer() {
       try {
         const data = JSON.parse(rawData.toString());
         const { type, roomId, userId, userName, color, code, language, problemId, problemTitle, text, result } = data;
+        const safeRoomId = typeof roomId === 'string' && roomId.trim() ? roomId : null;
+        const safeUserId = typeof userId === 'string' && userId.trim() ? userId : null;
 
-        if (type === 'join_room') {
-          currentRoomId = roomId;
-          currentUserId = userId || 'anon-' + Math.random().toString(36).substring(2, 6);
+        if (type === 'join_room' && safeRoomId) {
+          currentRoomId = safeRoomId;
+          currentUserId = safeUserId || 'anon-' + Math.random().toString(36).substring(2, 6);
 
-          let room = collabRooms.get(roomId);
+          let room = collabRooms.get(safeRoomId);
           if (!room) {
             // Auto-create room if not found
             room = {
-              id: roomId,
-              name: `Study Room #${roomId.substring(0, 6)}`,
-              problemId: problemId || 'two-sum',
-              problemTitle: problemTitle || 'Two Sum',
-              language: (language as any) || 'javascript',
-              code: `// Real-Time Collaborative Room\n// Room ID: ${roomId}\n\nfunction solve() {\n  // Type code here...\n}\n`,
+              id: safeRoomId,
+              name: `Study Room #${safeRoomId.substring(0, 6)}`,
+              problemId: typeof problemId === 'string' && problemId.trim() ? problemId : 'two-sum',
+              problemTitle: typeof problemTitle === 'string' && problemTitle.trim() ? problemTitle : 'Two Sum',
+              language: (typeof language === 'string' && language.trim()) ? (language as any) : 'javascript',
+              code: `// Real-Time Collaborative Room\n// Room ID: ${safeRoomId}\n\nfunction solve() {\n  // Type code here...\n}\n`,
               clients: new Set(),
               users: new Map(),
               messages: [],
               createdAt: new Date().toISOString(),
             };
-            collabRooms.set(roomId, room);
+            collabRooms.set(safeRoomId, room);
           }
 
           room.clients.add(ws);
@@ -850,7 +852,7 @@ async function startServer() {
     });
   }
 
-  server.listen(PORT, '0.0.0.0', () => {
+  server.listen(Number(PORT), '0.0.0.0', () => {
     console.log(`AlgoMentor server + WebSockets running on http://0.0.0.0:${PORT}`);
   });
 }

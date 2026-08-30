@@ -1,12 +1,12 @@
 {
-  "projectId": "yodeling-implement-f8chg",
-  "appId": "1:726525248498:web:24c0572d020a55c639216b",
-  "apiKey": "AIzaSyDrOiCiGd36cN7DPYpCdiynUUFFMKgtNts",
-  "authDomain": "yodeling-implement-f8chg.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-algomentor-8c953ce8-6b36-4145-b867-9c1939ec70e4",
-  "storageBucket": "yodeling-implement-f8chg.firebasestorage.app",
-  "messagingSenderId": "726525248498",
-  "measurementId": "",
-  "oAuthClientId": "726525248498-83vluou6tb8cqrciiet8gh33dh6gku7c.apps.googleusercontent.com",
+  "projectId": "lol123-c7c65",
+  "appId": "1:205799016148:web:8cbbf83b7ca420f79d9d41",
+  "apiKey": "AIzaSyAqAh-7YZlboruE61c4Ghx-FAbfFqd7TSs",
+  "authDomain": "lol123-c7c65.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "lol123-c7c65.firebasestorage.app",
+  "messagingSenderId": "205799016148",
+  "measurementId": "G-8MXFB00SP6",
+  "oAuthClientId": "",
   "recaptchaSiteKey": ""
 }
