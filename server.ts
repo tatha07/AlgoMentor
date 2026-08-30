@@ -35,6 +35,67 @@ function getGenAI(): GoogleGenAI {
   return aiClient;
 }
 
+// Models to try in order. If the primary model is overloaded (503),
+// fall back to a more stable/established model rather than failing outright.
+const MODEL_FALLBACK_CHAIN = ['gemini-3.7-flash', 'gemini-2.5-flash'];
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Calls ai.models.generateContent with automatic retry on transient errors
+ * (503 UNAVAILABLE / 429 RESOURCE_EXHAUSTED), and falls back through
+ * MODEL_FALLBACK_CHAIN if a given model keeps failing.
+ *
+ * `paramsWithoutModel` is the same object you'd pass to generateContent,
+ * minus the `model` field (which this helper fills in per attempt).
+ */
+async function generateContentWithRetry(
+  ai: GoogleGenAI,
+  paramsWithoutModel: Record<string, any>,
+  options: { retriesPerModel?: number; baseDelayMs?: number } = {}
+) {
+  const { retriesPerModel = 2, baseDelayMs = 800 } = options;
+  let lastError: any = null;
+
+  for (const model of MODEL_FALLBACK_CHAIN) {
+    for (let attempt = 0; attempt <= retriesPerModel; attempt++) {
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          ...paramsWithoutModel,
+        });
+        return response;
+      } catch (error: any) {
+        lastError = error;
+        const status = error?.status || error?.error?.code;
+        const isTransient = status === 503 || status === 429;
+
+        if (!isTransient) {
+          // Not a demand/rate issue (e.g. bad request, auth error) — don't retry, don't fall back.
+          throw error;
+        }
+
+        console.warn(
+          `generateContent transient error on model "${model}" (attempt ${attempt + 1}/${retriesPerModel + 1}, status ${status}). ${
+            attempt < retriesPerModel ? 'Retrying...' : 'Moving to next fallback model if available.'
+          }`
+        );
+
+        if (attempt < retriesPerModel) {
+          // Exponential backoff before retrying the same model
+          await sleep(baseDelayMs * Math.pow(2, attempt));
+        }
+      }
+    }
+    // Exhausted retries for this model, try the next one in the chain (if any)
+  }
+
+  // All models and retries exhausted
+  throw lastError;
+}
+
 // In-Memory Real-Time Collaboration Store
 interface CollabUser {
   userId: string;
@@ -204,8 +265,7 @@ app.post('/api/tutor/chat', async (req: Request, res: Response) => {
       parts: [{ text: `${promptContext}\nUser Query: ${message}` }]
     });
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.7-flash',
+    const response = await generateContentWithRetry(ai, {
       contents,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION_DSA_TUTOR,
@@ -217,6 +277,14 @@ app.post('/api/tutor/chat', async (req: Request, res: Response) => {
     res.json({ reply: text });
   } catch (error: any) {
     console.error('Error in /api/tutor/chat:', error);
+    const status = error?.status || error?.error?.code;
+    if (status === 503 || status === 429) {
+      res.status(503).json({
+        error: 'AlgoMentor is experiencing high demand right now. Please try again in a moment.',
+        details: error?.message,
+      });
+      return;
+    }
     res.status(500).json({
       error: 'Failed to process AI tutor request. Please verify GEMINI_API_KEY in settings.',
       details: error?.message,
@@ -254,8 +322,7 @@ Requirement: Provide ONLY Hint Level ${hintLevel} (${hintInstructions[Math.min(h
 Do NOT jump ahead to full solution unless level is 5.
 Add a brief senior dev observation on their attempt if code was provided.`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.7-flash',
+    const response = await generateContentWithRetry(ai, {
       contents: prompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION_DSA_TUTOR,
@@ -266,6 +333,11 @@ Add a brief senior dev observation on their attempt if code was provided.`;
     res.json({ hint: response.text || 'No hint available.' });
   } catch (error: any) {
     console.error('Error in /api/tutor/hint:', error);
+    const status = error?.status || error?.error?.code;
+    if (status === 503 || status === 429) {
+      res.status(503).json({ error: 'AlgoMentor is experiencing high demand right now. Please try again in a moment.', details: error?.message });
+      return;
+    }
     res.status(500).json({ error: 'Failed to generate hint.', details: error?.message });
   }
 });
@@ -296,8 +368,7 @@ Provide a comprehensive structured breakdown:
 5. Hidden Bugs, Off-by-one errors, or Edge Case Failures (e.g., empty inputs, negatives, integer overflows)
 6. Concrete Optimization Suggestions & Refactored Clean Code`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.7-flash',
+    const response = await generateContentWithRetry(ai, {
       contents: prompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION_DSA_TUTOR,
@@ -308,6 +379,11 @@ Provide a comprehensive structured breakdown:
     res.json({ explanation: response.text || 'Could not analyze code.' });
   } catch (error: any) {
     console.error('Error in /api/tutor/explain-code:', error);
+    const status = error?.status || error?.error?.code;
+    if (status === 503 || status === 429) {
+      res.status(503).json({ error: 'AlgoMentor is experiencing high demand right now. Please try again in a moment.', details: error?.message });
+      return;
+    }
     res.status(500).json({ error: 'Failed to explain code.', details: error?.message });
   }
 });
@@ -334,8 +410,7 @@ Provide a strict senior dev code review:
 4. If there is a roast-worthy flaw (like O(N^3) on an O(N) problem), include a witty senior dev remark.
 5. Provide actionable improvements and optimal version if needed.`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.7-flash',
+    const response = await generateContentWithRetry(ai, {
       contents: prompt,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION_DSA_TUTOR,
@@ -346,6 +421,11 @@ Provide a strict senior dev code review:
     res.json({ evaluation: response.text || 'Evaluation failed.' });
   } catch (error: any) {
     console.error('Error in /api/tutor/evaluate-solution:', error);
+    const status = error?.status || error?.error?.code;
+    if (status === 503 || status === 429) {
+      res.status(503).json({ error: 'AlgoMentor is experiencing high demand right now. Please try again in a moment.', details: error?.message });
+      return;
+    }
     res.status(500).json({ error: 'Failed to evaluate solution.', details: error?.message });
   }
 });
@@ -383,8 +463,7 @@ Provide a strict, professional FAANG-style interview scorecard in JSON format wi
 - interviewerVerdict (one of: "Strong Hire", "Hire", "Leaning Hire", "Needs More Practice", "Cooked (Roast)")
 - detailedFeedback (string)`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.7-flash',
+      const response = await generateContentWithRetry(ai, {
         contents: prompt,
         config: {
           systemInstruction: 'You are a Principal Engineer conducting technical interview calibrations.',
@@ -428,8 +507,7 @@ ${JSON.stringify(conversation, null, 2)}
 
 Respond with your next interview question/prompt:`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.7-flash',
+      const response = await generateContentWithRetry(ai, {
         contents: prompt,
         config: {
           systemInstruction: 'You are an authentic, sharp FAANG Senior Engineer conducting a coding interview.',
@@ -441,6 +519,11 @@ Respond with your next interview question/prompt:`;
     }
   } catch (error: any) {
     console.error('Error in /api/tutor/interview:', error);
+    const status = error?.status || error?.error?.code;
+    if (status === 503 || status === 429) {
+      res.status(503).json({ error: 'AlgoMentor is experiencing high demand right now. Please try again in a moment.', details: error?.message });
+      return;
+    }
     res.status(500).json({ error: 'Failed to process interview turn.', details: error?.message });
   }
 });
@@ -563,8 +646,7 @@ Instructions:
 4. Estimate realistic execution time in milliseconds (15 - 90ms).
 5. Output response strictly in valid JSON matching the schema.`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.7-flash',
+    const response = await generateContentWithRetry(ai, {
       contents: prompt,
       config: {
         systemInstruction: `You are an ultra-fast, sandboxed multi-language code execution engine and unit tester.`,
@@ -606,6 +688,11 @@ Instructions:
     });
   } catch (error: any) {
     console.error('Error in /api/sandbox/run:', error);
+    const status = error?.status || error?.error?.code;
+    if (status === 503 || status === 429) {
+      res.status(503).json({ error: 'AlgoMentor is experiencing high demand right now. Please try again in a moment.', details: error?.message });
+      return;
+    }
     res.status(500).json({
       error: 'Code execution engine error.',
       details: error?.message,
