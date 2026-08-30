@@ -37,7 +37,7 @@ function getGenAI(): GoogleGenAI {
 
 // Models to try in order. If the primary model is overloaded (503),
 // fall back to a more stable/established model rather than failing outright.
-const MODEL_FALLBACK_CHAIN = ['gemini-3.7-flash', 'gemini-2.5-flash'];
+const MODEL_FALLBACK_CHAIN = ['gemini-3.7-flash', 'gemini-3.6-flash'];
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
