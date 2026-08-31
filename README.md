@@ -4,7 +4,7 @@ AlgoMentor is an interactive Data Structures & Algorithms (DSA) training platfor
 
 ---
 
-## 🏛️ System Architecture
+## System Architecture
 
 The application is architected as a cohesive full-stack application running on port `3000`:
 
@@ -31,7 +31,7 @@ The application is architected as a cohesive full-stack application running on p
 
 ---
 
-## 🚀 How to Access the Frontend and Backend
+## How to Access the Frontend and Backend
 
 ### 1. Unified Port Access
 Both frontend and backend are unified under port **3000**:
@@ -60,7 +60,7 @@ Both frontend and backend are unified under port **3000**:
 
 ---
 
-## 🛠️ Development & Production Commands
+## Development & Production Commands
 
 ### Install Dependencies
 ```bash
@@ -87,7 +87,7 @@ npm start
 
 ---
 
-## 🔑 Environment Configuration
+## Environment Configuration
 
 Add the following environment variables in `.env` (or configure via the environment settings):
 
@@ -100,7 +100,7 @@ Firebase credentials are automatically managed via `firebase-applet-config.json`
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
 1. **User Authentication & Cloud Sync (Firebase)**
    - Sign up & Sign in with Email/Password or Google OAuth popup.
