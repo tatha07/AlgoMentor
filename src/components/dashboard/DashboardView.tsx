@@ -13,9 +13,9 @@ import {
   FileCode2, 
   Zap, 
   Award, 
-  Clock,
-  TrendingUp,
-  ShieldAlert
+  Clock, 
+  TrendingUp, 
+  ShieldAlert 
 } from 'lucide-react';
 
 export const DashboardView: React.FC = () => {
@@ -50,24 +50,24 @@ export const DashboardView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 transition-colors duration-200">
       {/* Welcome & Persona Banner */}
-      <div className="p-6 md:p-8 rounded-xl bg-gradient-to-br from-zinc-900 via-zinc-900/90 to-zinc-950 border border-zinc-800 relative overflow-hidden shadow-xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-br from-white via-indigo-50/40 to-slate-100 dark:from-zinc-900 dark:via-zinc-900/90 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800 relative overflow-hidden shadow-sm">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono uppercase tracking-wider text-indigo-400 font-semibold px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20">
+              <span className="text-xs font-mono uppercase tracking-wider text-indigo-700 dark:text-indigo-400 font-semibold px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20">
                 {userProfile.level} Track
               </span>
-              <span className="text-xs text-zinc-400 font-mono">
+              <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
                 Tone: {userProfile.tutorTone === 'savage' ? '🌶️ Savage Senior Dev' : 'Balanced Senior Dev'}
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-              Ready to crush DSA, <span className="text-indigo-400">{userProfile.name.split(' ')[0]}</span>?
+            <h1 className="text-2xl md:text-3xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
+              Ready to master DSA, <span className="text-indigo-600 dark:text-indigo-400">{userProfile.name.split(' ')[0]}</span>?
             </h1>
-            <p className="text-sm text-zinc-400 max-w-2xl leading-relaxed">
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
               "Stop memorizing solutions. Start recognizing invariants, memory models, and algorithmic patterns."
             </p>
           </div>
@@ -77,7 +77,7 @@ export const DashboardView: React.FC = () => {
               <button
                 onClick={startAssessment}
                 id="btn-dash-assessment"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-mono text-xs font-bold shadow-md shadow-indigo-500/20 hover:opacity-95 transition-opacity border border-indigo-500/30"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-mono text-xs font-bold shadow-md shadow-indigo-500/20 hover:opacity-95 transition-opacity"
               >
                 <Sparkles className="w-4 h-4 text-indigo-200" />
                 <span>Take Diagnostic Test</span>
@@ -86,9 +86,9 @@ export const DashboardView: React.FC = () => {
             <button
               onClick={() => setActiveTab('chat')}
               id="btn-dash-ask-tutor"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white font-mono text-xs font-semibold border border-zinc-800 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-zinc-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-800 dark:text-white font-mono text-xs font-semibold border border-zinc-200 dark:border-zinc-800 transition-colors shadow-sm"
             >
-              <Bot className="w-4 h-4 text-indigo-400" />
+              <Bot className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>Ask Senior Dev</span>
             </button>
           </div>
@@ -98,128 +98,128 @@ export const DashboardView: React.FC = () => {
       {/* Metrics Row: 4 Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Streak */}
-        <div className="p-5 rounded-xl bg-zinc-900/70 border border-zinc-800 hover:border-zinc-700 transition-all">
+        <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900/70 border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all hover:border-amber-300 dark:hover:border-zinc-700">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-mono text-zinc-400 uppercase font-semibold">Active Streak</span>
-            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+            <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 uppercase font-semibold">Active Streak</span>
+            <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400">
               <Flame className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold font-mono text-white flex items-baseline gap-1.5">
+          <div className="text-2xl font-bold font-mono text-zinc-900 dark:text-white flex items-baseline gap-1.5">
             {userProfile.streakDays}
-            <span className="text-xs font-sans text-zinc-400 font-normal">days straight</span>
+            <span className="text-xs font-sans text-zinc-500 dark:text-zinc-400 font-normal">days straight</span>
           </div>
-          <p className="text-xs text-zinc-400 mt-1">Keep solving daily to maintain momentum.</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Keep solving daily to maintain momentum.</p>
         </div>
 
         {/* Metric 2: Curriculum Mastery */}
-        <div className="p-5 rounded-xl bg-zinc-900/70 border border-zinc-800 hover:border-zinc-700 transition-all">
+        <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900/70 border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all hover:border-indigo-300 dark:hover:border-zinc-700">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-mono text-zinc-400 uppercase font-semibold">Curriculum</span>
-            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+            <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 uppercase font-semibold">Curriculum</span>
+            <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold font-mono text-white flex items-baseline gap-1.5">
+          <div className="text-2xl font-bold font-mono text-zinc-900 dark:text-white flex items-baseline gap-1.5">
             {overallTrackProgress}%
-            <span className="text-xs font-sans text-zinc-400 font-normal">({completedTopicsCount}/{totalTopics} topics)</span>
+            <span className="text-xs font-sans text-zinc-500 dark:text-zinc-400 font-normal">({completedTopicsCount}/{totalTopics} topics)</span>
           </div>
-          <div className="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden mt-2">
+          <div className="w-full bg-zinc-200 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden mt-2">
             <div
-              className="bg-indigo-500 h-full rounded-full transition-all duration-500"
+              className="bg-indigo-600 dark:bg-indigo-500 h-full rounded-full transition-all duration-500"
               style={{ width: `${overallTrackProgress}%` }}
             />
           </div>
         </div>
 
         {/* Metric 3: Problems Solved */}
-        <div className="p-5 rounded-xl bg-zinc-900/70 border border-zinc-800 hover:border-zinc-700 transition-all">
+        <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900/70 border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all hover:border-sky-300 dark:hover:border-zinc-700">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-mono text-zinc-400 uppercase font-semibold">Problems Solved</span>
-            <div className="p-2 rounded-lg bg-sky-500/10 text-sky-400">
+            <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 uppercase font-semibold">Problems Solved</span>
+            <div className="p-2 rounded-xl bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400">
               <Award className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold font-mono text-white flex items-baseline gap-1.5">
+          <div className="text-2xl font-bold font-mono text-zinc-900 dark:text-white flex items-baseline gap-1.5">
             {userProfile.solvedProblems.length}
-            <span className="text-xs font-sans text-zinc-400 font-normal">verified</span>
+            <span className="text-xs font-sans text-zinc-500 dark:text-zinc-400 font-normal">verified</span>
           </div>
           <div className="flex items-center gap-2 text-[10px] font-mono mt-2">
-            <span className="text-emerald-400">{easyCount}E</span>
-            <span className="text-amber-400">{mediumCount}M</span>
-            <span className="text-rose-400">{hardCount}H</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-bold">{easyCount}E</span>
+            <span className="text-amber-600 dark:text-amber-400 font-bold">{mediumCount}M</span>
+            <span className="text-rose-600 dark:text-rose-400 font-bold">{hardCount}H</span>
           </div>
         </div>
 
         {/* Metric 4: Daily Target */}
-        <div className="p-5 rounded-xl bg-zinc-900/70 border border-zinc-800 hover:border-zinc-700 transition-all">
+        <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900/70 border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all hover:border-violet-300 dark:hover:border-zinc-700">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-mono text-zinc-400 uppercase font-semibold">Daily Mission</span>
-            <div className="p-2 rounded-lg bg-violet-500/10 text-violet-400">
+            <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 uppercase font-semibold">Daily Mission</span>
+            <div className="p-2 rounded-xl bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400">
               <Target className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold font-mono text-white flex items-baseline gap-1.5">
+          <div className="text-2xl font-bold font-mono text-zinc-900 dark:text-white flex items-baseline gap-1.5">
             {Math.min(userProfile.dailyGoalProblems, userProfile.solvedProblems.length % (userProfile.dailyGoalProblems + 1))}
-            <span className="text-xs font-sans text-zinc-400 font-normal">/ {userProfile.dailyGoalProblems} problems</span>
+            <span className="text-xs font-sans text-zinc-500 dark:text-zinc-400 font-normal">/ {userProfile.dailyGoalProblems} problems</span>
           </div>
-          <p className="text-xs text-zinc-400 mt-1">Goal reset in ~14h.</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Goal reset daily.</p>
         </div>
       </div>
 
       {/* Main Grid: Next Topic & Growth Areas */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Next Topic Spotlight (2 Cols) */}
-        <div className="lg:col-span-2 p-6 rounded-xl bg-zinc-900/80 border border-zinc-800 space-y-4">
+        <div className="lg:col-span-2 p-6 rounded-2xl bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400">
+              <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
                 <Zap className="w-4 h-4" />
               </div>
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-300">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-300">
                 Recommended Next Step
               </span>
             </div>
-            <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 uppercase border border-zinc-700/50">
+            <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 uppercase border border-zinc-200 dark:border-zinc-700/50">
               {nextTopic.trackLevel}
             </span>
           </div>
 
           <div>
-            <h3 className="text-lg font-bold text-white group-hover:text-indigo-400 transition-colors">
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-white group-hover:text-indigo-500 transition-colors">
               {nextTopic.title}
             </h3>
-            <p className="text-xs text-zinc-400 mt-1 line-clamp-2 leading-relaxed">
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 line-clamp-2 leading-relaxed">
               {nextTopic.description}
             </p>
           </div>
 
           {/* Key Invariants / Patterns */}
-          <div className="p-3.5 rounded-lg bg-zinc-950/60 border border-zinc-800/80 flex flex-wrap items-center gap-4 text-xs font-mono">
+          <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800/80 flex flex-wrap items-center gap-4 text-xs font-mono">
             <div>
               <span className="text-zinc-500">Time: </span>
-              <span className="text-indigo-400 font-semibold">{nextTopic.timeComplexity.average}</span>
+              <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{nextTopic.timeComplexity.average}</span>
             </div>
             <div>
               <span className="text-zinc-500">Space: </span>
-              <span className="text-sky-400 font-semibold">{nextTopic.spaceComplexity.worst}</span>
+              <span className="text-sky-600 dark:text-sky-400 font-semibold">{nextTopic.spaceComplexity.worst}</span>
             </div>
             <div>
               <span className="text-zinc-500">Patterns: </span>
-              <span className="text-zinc-300">
+              <span className="text-zinc-700 dark:text-zinc-300">
                 {nextTopic.patterns.slice(0, 2).map(p => p.name).join(', ')}
               </span>
             </div>
           </div>
 
           <div className="flex items-center justify-between pt-2">
-            <span className="text-xs text-zinc-400 font-mono">
+            <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
               Category: {nextTopic.category} • {Object.keys(nextTopic.codeSnippets).length} languages
             </span>
             <button
               onClick={() => handleStartNextTopic(nextTopic.id)}
               id="btn-start-next-topic"
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-bold transition-colors shadow-sm shadow-indigo-500/20 border border-indigo-500/40"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-bold transition-colors shadow-sm shadow-indigo-500/20"
             >
               <span>Explore Curriculum</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -228,13 +228,13 @@ export const DashboardView: React.FC = () => {
         </div>
 
         {/* Growth & Weaknesses Card (1 Col) */}
-        <div className="p-6 rounded-xl bg-zinc-900/80 border border-zinc-800 space-y-4">
-          <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-amber-400">
+        <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 space-y-4 shadow-sm">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
             <ShieldAlert className="w-4 h-4" />
             <span>Target Weak Points</span>
           </div>
 
-          <p className="text-xs text-zinc-400 leading-relaxed">
+          <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
             Identified by your diagnostic quiz and recent practice logs:
           </p>
 
@@ -243,34 +243,34 @@ export const DashboardView: React.FC = () => {
               userProfile.weakTopics.map((wt, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-950/60 border border-zinc-800/80 text-xs"
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800/80 text-xs"
                 >
-                  <span className="font-mono text-zinc-300">{wt}</span>
+                  <span className="font-mono text-zinc-800 dark:text-zinc-300">{wt}</span>
                   <button
                     onClick={() => setActiveTab('practice')}
-                    className="text-[11px] font-mono text-indigo-400 hover:underline"
+                    className="text-[11px] font-mono text-indigo-600 dark:text-indigo-400 hover:underline"
                   >
                     Practice →
                   </button>
                 </div>
               ))
             ) : (
-              <div className="text-xs text-zinc-500 p-3 rounded-lg bg-zinc-950/40 text-center font-mono">
+              <div className="text-xs text-zinc-500 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-950/40 text-center font-mono">
                 No weak points flagged yet!
               </div>
             )}
           </div>
 
           {userProfile.strongTopics.length > 0 && (
-            <div className="pt-3 border-t border-zinc-800">
-              <span className="text-[11px] font-mono uppercase text-zinc-500 block mb-2 font-semibold">
+            <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800">
+              <span className="text-[11px] font-mono uppercase text-zinc-500 dark:text-zinc-400 block mb-2 font-semibold">
                 Strengths Mastered
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {userProfile.strongTopics.map((st, idx) => (
                   <span
                     key={idx}
-                    className="text-[10px] px-2 py-0.5 rounded font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    className="text-[10px] px-2 py-0.5 rounded font-mono bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20"
                   >
                     ✓ {st}
                   </span>
@@ -283,22 +283,22 @@ export const DashboardView: React.FC = () => {
 
       {/* Quick Launchpad Cards */}
       <div>
-        <div className="text-xs font-mono uppercase tracking-wider text-zinc-500 font-semibold mb-3">
+        <div className="text-xs font-mono uppercase tracking-wider text-zinc-500 dark:text-zinc-400 font-semibold mb-3">
           Specialized Workspaces
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <button
             onClick={() => setActiveTab('chat')}
             id="launchpad-tutor"
-            className="p-5 text-left rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-indigo-500/50 hover:bg-zinc-900/90 transition-all group"
+            className="p-5 text-left rounded-2xl bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 hover:border-indigo-400 dark:hover:border-indigo-500/50 hover:bg-slate-50 dark:hover:bg-zinc-900/90 transition-all group shadow-sm"
           >
-            <div className="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform border border-indigo-500/20">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform border border-indigo-200 dark:border-indigo-500/20">
               <Bot className="w-5 h-5" />
             </div>
-            <h4 className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">
+            <h4 className="text-sm font-bold text-zinc-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
               AI Senior Tutor
             </h4>
-            <p className="text-xs text-zinc-400 mt-1">
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
               Ask any DSA question, get roasts for bad ideas, and master intuition.
             </p>
           </button>
@@ -306,47 +306,47 @@ export const DashboardView: React.FC = () => {
           <button
             onClick={() => setActiveTab('practice')}
             id="launchpad-practice"
-            className="p-5 text-left rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-sky-500/50 hover:bg-zinc-900/90 transition-all group"
+            className="p-5 text-left rounded-2xl bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 hover:border-sky-400 dark:hover:border-sky-500/50 hover:bg-slate-50 dark:hover:bg-zinc-900/90 transition-all group shadow-sm"
           >
-            <div className="w-10 h-10 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform border border-sky-500/20">
+            <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform border border-sky-200 dark:border-sky-500/20">
               <Code2 className="w-5 h-5" />
             </div>
-            <h4 className="text-sm font-bold text-white group-hover:text-sky-400 transition-colors">
+            <h4 className="text-sm font-bold text-zinc-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
               Practice Arena
             </h4>
-            <p className="text-xs text-zinc-400 mt-1">
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
               Progressive hints, starter code in 4 languages, and AI code review.
             </p>
           </button>
 
           <button
-            onClick={() => setActiveTab('interview')}
-            id="launchpad-interview"
-            className="p-5 text-left rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-violet-500/50 hover:bg-zinc-900/90 transition-all group"
+            onClick={() => setActiveTab('collab')}
+            id="launchpad-collab"
+            className="p-5 text-left rounded-2xl bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 hover:border-violet-400 dark:hover:border-violet-500/50 hover:bg-slate-50 dark:hover:bg-zinc-900/90 transition-all group shadow-sm"
           >
-            <div className="w-10 h-10 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform border border-violet-500/20">
+            <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform border border-violet-200 dark:border-violet-500/20">
               <Users className="w-5 h-5" />
             </div>
-            <h4 className="text-sm font-bold text-white group-hover:text-violet-400 transition-colors">
-              DSA Mock Interview
+            <h4 className="text-sm font-bold text-zinc-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+              Study Rooms
             </h4>
-            <p className="text-xs text-zinc-400 mt-1">
-              Live timed technical interview with strict FAANG rubric scorecard.
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+              Live peer coding sessions with real-time Monaco editor sync.
             </p>
           </button>
 
           <button
             onClick={() => setActiveTab('code-explainer')}
             id="launchpad-explainer"
-            className="p-5 text-left rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-amber-500/50 hover:bg-zinc-900/90 transition-all group"
+            className="p-5 text-left rounded-2xl bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 hover:border-amber-400 dark:hover:border-amber-500/50 hover:bg-slate-50 dark:hover:bg-zinc-900/90 transition-all group shadow-sm"
           >
-            <div className="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform border border-amber-500/20">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform border border-amber-200 dark:border-amber-500/20">
               <FileCode2 className="w-5 h-5" />
             </div>
-            <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">
+            <h4 className="text-sm font-bold text-zinc-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
               Explain My Code
             </h4>
-            <p className="text-xs text-zinc-400 mt-1">
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
               Paste messy code for line-by-line breakdown, Big-O, and edge bug fixes.
             </p>
           </button>
@@ -354,34 +354,34 @@ export const DashboardView: React.FC = () => {
       </div>
 
       {/* Recent Solved Activity */}
-      <div className="p-6 rounded-xl bg-zinc-900/70 border border-zinc-800">
+      <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900/70 border border-zinc-200 dark:border-zinc-800 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-zinc-500" />
-            <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wider">
+            <Clock className="w-4 h-4 text-zinc-400 dark:text-zinc-500" />
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-white font-mono uppercase tracking-wider">
               Recent Problem Activity
             </h3>
           </div>
           <button
             onClick={() => setActiveTab('practice')}
-            className="text-xs font-mono text-indigo-400 hover:underline"
+            className="text-xs font-mono text-indigo-600 dark:text-indigo-400 hover:underline"
           >
             Explore All Problems →
           </button>
         </div>
 
         {userProfile.solvedProblems.length > 0 ? (
-          <div className="divide-y divide-zinc-800">
+          <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
             {userProfile.solvedProblems.slice(0, 5).map((p, idx) => (
               <div
                 key={idx}
-                className="py-3 flex items-center justify-between gap-4 hover:bg-zinc-800/40 px-2 rounded-lg transition-colors"
+                className="py-3 flex items-center justify-between gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 px-2 rounded-xl transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                   <div>
-                    <h5 className="text-sm font-medium text-white">{p.problemTitle}</h5>
-                    <span className="text-[11px] text-zinc-400 font-mono">
+                    <h5 className="text-sm font-medium text-zinc-900 dark:text-white">{p.problemTitle}</h5>
+                    <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono">
                       Solved in ~{Math.round(p.timeSpentSeconds / 60)} mins • Mode: {p.mode}
                     </span>
                   </div>
@@ -390,17 +390,17 @@ export const DashboardView: React.FC = () => {
                   <span
                     className={`text-[10px] font-mono uppercase font-semibold px-2 py-0.5 rounded ${
                       p.difficulty === 'easy'
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20'
                         : p.difficulty === 'medium'
-                        ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                        : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                        ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20'
+                        : 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20'
                     }`}
                   >
                     {p.difficulty}
                   </span>
                   <button
                     onClick={() => handlePracticeProblem(p.problemId)}
-                    className="text-xs font-mono text-zinc-400 hover:text-white px-2 py-1 bg-zinc-800 hover:bg-zinc-700 rounded transition-colors"
+                    className="text-xs font-mono text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 rounded-lg transition-colors border border-zinc-200 dark:border-zinc-700"
                   >
                     Re-solve
                   </button>
@@ -409,7 +409,7 @@ export const DashboardView: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-6 text-xs text-zinc-500 font-mono">
+          <div className="text-center py-8 text-xs text-zinc-500 dark:text-zinc-400 font-mono">
             No problems solved yet. Jump into the Practice Arena to get your first green check!
           </div>
         )}

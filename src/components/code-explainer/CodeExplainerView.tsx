@@ -5,12 +5,7 @@ import Markdown from 'react-markdown';
 import { 
   FileCode2, 
   Sparkles, 
-  Play, 
-  Copy, 
-  Check, 
   Terminal, 
-  AlertTriangle, 
-  RotateCcw,
   Code
 } from 'lucide-react';
 
@@ -86,19 +81,19 @@ export const CodeExplainerView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 transition-colors duration-200">
       {/* Header */}
-      <div className="p-6 rounded-xl bg-zinc-900/80 border border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-mono uppercase tracking-wider text-indigo-400 font-semibold px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20">
+            <span className="text-xs font-mono uppercase tracking-wider text-indigo-600 dark:text-indigo-400 font-semibold px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20">
               Code Intelligence & Debugger
             </span>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">
             DSA Code Explainer & Big-O Auditor
           </h1>
-          <p className="text-xs text-zinc-400 mt-1 max-w-xl">
+          <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 max-w-xl">
             Paste any algorithm implementation. Get line-by-line breakdown, asymptotic complexity proof, edge-case vulnerability audit, and clean optimizations.
           </p>
         </div>
@@ -108,19 +103,19 @@ export const CodeExplainerView: React.FC = () => {
           <span className="text-xs font-mono text-zinc-500">Sample Snippets:</span>
           <button
             onClick={() => setCode(SAMPLE_CODE_SNIPPETS.binarySearchBuggy)}
-            className="px-2.5 py-1 text-xs font-mono bg-zinc-950 hover:bg-zinc-800 text-zinc-300 rounded-lg border border-zinc-800 transition-colors"
+            className="px-2.5 py-1 text-xs font-mono bg-zinc-50 dark:bg-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-lg border border-zinc-200 dark:border-zinc-800 transition-colors shadow-sm"
           >
             Buggy Binary Search
           </button>
           <button
             onClick={() => setCode(SAMPLE_CODE_SNIPPETS.recursiveFibonacci)}
-            className="px-2.5 py-1 text-xs font-mono bg-zinc-950 hover:bg-zinc-800 text-zinc-300 rounded-lg border border-zinc-800 transition-colors"
+            className="px-2.5 py-1 text-xs font-mono bg-zinc-50 dark:bg-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-lg border border-zinc-200 dark:border-zinc-800 transition-colors shadow-sm"
           >
             Exponential Fib
           </button>
           <button
             onClick={() => setCode(SAMPLE_CODE_SNIPPETS.graphBfs)}
-            className="px-2.5 py-1 text-xs font-mono bg-zinc-950 hover:bg-zinc-800 text-zinc-300 rounded-lg border border-zinc-800 transition-colors"
+            className="px-2.5 py-1 text-xs font-mono bg-zinc-50 dark:bg-zinc-950 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-lg border border-zinc-200 dark:border-zinc-800 transition-colors shadow-sm"
           >
             Graph BFS
           </button>
@@ -131,23 +126,23 @@ export const CodeExplainerView: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* Left: Code Input (6 cols) */}
         <div className="lg:col-span-6 space-y-4">
-          <div className="rounded-xl bg-zinc-900/80 border border-zinc-800 overflow-hidden shadow-xl">
-            <div className="px-4 py-3 bg-zinc-950/80 border-b border-zinc-800 flex items-center justify-between">
+          <div className="rounded-2xl bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
+            <div className="px-4 py-3 bg-zinc-50 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Code className="w-4 h-4 text-indigo-400" />
-                <span className="text-xs font-mono font-bold text-white uppercase">Your Code</span>
+                <Code className="w-4 h-4 text-indigo-500" />
+                <span className="text-xs font-mono font-bold text-zinc-900 dark:text-white uppercase">Your Code</span>
               </div>
 
               {/* Language Selector */}
-              <div className="flex items-center gap-1 bg-zinc-900 p-1 rounded-lg border border-zinc-800 text-xs font-mono">
+              <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-mono">
                 {(['javascript', 'python', 'cpp', 'java'] as const).map(l => (
                   <button
                     key={l}
                     onClick={() => setLanguage(l)}
-                    className={`px-2.5 py-1 rounded-md uppercase transition-all ${
+                    className={`px-2.5 py-1 rounded-lg uppercase transition-all ${
                       language === l
-                        ? 'bg-indigo-600 text-white font-bold'
-                        : 'text-zinc-400 hover:text-white'
+                        ? 'bg-indigo-600 text-white font-bold shadow-sm'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
                     }`}
                   >
                     {l}
@@ -165,23 +160,23 @@ export const CodeExplainerView: React.FC = () => {
               placeholder="// Paste your algorithm code here..."
             />
 
-            <div className="p-3 bg-zinc-950/80 border-t border-zinc-800">
+            <div className="p-3 bg-zinc-50 dark:bg-zinc-950/80 border-t border-zinc-200 dark:border-zinc-800">
               <input
                 type="text"
                 value={context}
                 onChange={e => setContext(e.target.value)}
                 placeholder="Optional: Specific problem context or question (e.g., 'Why does this get TLE on test 45?')"
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 font-mono"
+                className="w-full bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-indigo-500 font-mono shadow-sm"
               />
             </div>
 
-            <div className="px-4 py-3 bg-zinc-950 border-t border-zinc-800 flex items-center justify-between">
+            <div className="px-4 py-3 bg-zinc-50 dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
               <button
                 onClick={() => {
                   setCode('');
                   setExplanation(null);
                 }}
-                className="text-xs font-mono text-zinc-400 hover:text-white"
+                className="text-xs font-mono text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
               >
                 Clear
               </button>
@@ -190,7 +185,7 @@ export const CodeExplainerView: React.FC = () => {
                 onClick={handleExplain}
                 id="btn-analyze-code"
                 disabled={isExplaining || !code.trim()}
-                className="flex items-center gap-2 px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-bold transition-opacity shadow-sm shadow-indigo-600/20 border border-indigo-500/40 disabled:opacity-40"
+                className="flex items-center gap-2 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-bold transition-opacity shadow-sm shadow-indigo-600/20 disabled:opacity-40"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>{isExplaining ? 'Auditing Invariants...' : 'Analyze & Explain Code'}</span>
@@ -201,33 +196,31 @@ export const CodeExplainerView: React.FC = () => {
 
         {/* Right: AI Explanation Stream (6 cols) */}
         <div className="lg:col-span-6">
-          <div className="p-6 rounded-xl bg-zinc-900/80 border border-zinc-800 min-h-[500px] shadow-xl">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold text-indigo-400 uppercase">
+          <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 min-h-[500px] shadow-sm">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800 mb-4">
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 uppercase">
                 <Terminal className="w-4 h-4" />
                 <span>Senior Dev Analysis Report</span>
               </div>
             </div>
 
             {explanation ? (
-              <div className="prose prose-invert prose-sm max-w-none text-zinc-200 leading-relaxed font-sans space-y-4">
-                <div className="markdown-body">
-                  <Markdown>{explanation}</Markdown>
-                </div>
+              <div className="prose dark:prose-invert prose-sm max-w-none text-zinc-800 dark:text-zinc-200 leading-relaxed font-sans space-y-4">
+                <Markdown>{explanation}</Markdown>
               </div>
             ) : isExplaining ? (
               <div className="flex flex-col items-center justify-center py-24 space-y-3 text-center font-mono">
-                <div className="w-10 h-10 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 animate-pulse">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-500/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 animate-pulse">
                   <Sparkles className="w-5 h-5" />
                 </div>
-                <div className="text-xs text-zinc-300">
+                <div className="text-xs text-zinc-600 dark:text-zinc-300">
                   Tracing recursion stacks, checking edge cases, and measuring Big-O...
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-24 text-center font-mono space-y-2 text-zinc-500">
-                <FileCode2 className="w-12 h-12 text-zinc-600 stroke-1" />
-                <p className="text-xs">
+              <div className="flex flex-col items-center justify-center py-24 text-center font-mono space-y-2 text-zinc-400 dark:text-zinc-500">
+                <FileCode2 className="w-12 h-12 text-zinc-400 dark:text-zinc-600 stroke-1" />
+                <p className="text-xs max-w-sm">
                   Paste your code on the left and click "Analyze & Explain Code" to view a line-by-line audit.
                 </p>
               </div>

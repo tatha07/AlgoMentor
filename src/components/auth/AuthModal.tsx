@@ -6,7 +6,6 @@ import {
   Lock, 
   User, 
   ArrowRight, 
-  Sparkles, 
   AlertCircle,
   CheckCircle2,
   Cpu
@@ -49,7 +48,7 @@ export const AuthModal: React.FC = () => {
         await resetPassword(email);
         setResetSuccess(true);
       }
-    } catch (err) {
+    } catch {
       // Error handled by AuthContext
     } finally {
       setIsLoading(false);
@@ -61,7 +60,7 @@ export const AuthModal: React.FC = () => {
     clearAuthError();
     try {
       await signInWithGoogle();
-    } catch (err) {
+    } catch {
       // Handled in context
     } finally {
       setIsLoading(false);
@@ -69,22 +68,22 @@ export const AuthModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden my-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/70 dark:bg-zinc-950/80 backdrop-blur-md overflow-y-auto">
+      <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden my-8 transition-colors duration-200">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-950/60">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/60">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
+            <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-600/30">
               <Cpu className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-white font-mono">
+              <h2 className="text-sm font-bold text-zinc-900 dark:text-white font-mono">
                 {authModalMode === 'signin' && 'Sign In to AlgoMentor'}
                 {authModalMode === 'signup' && 'Create Your Free Account'}
                 {authModalMode === 'reset' && 'Reset Password'}
               </h2>
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 {authModalMode === 'signin' && 'Sync your solved problems and learning streak'}
                 {authModalMode === 'signup' && 'Get cloud persistence across all devices'}
                 {authModalMode === 'reset' && 'Enter your email to receive recovery instructions'}
@@ -97,7 +96,7 @@ export const AuthModal: React.FC = () => {
               setIsAuthModalOpen(false);
             }}
             id="btn-close-auth-modal"
-            className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800 transition-colors"
+            className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -107,7 +106,7 @@ export const AuthModal: React.FC = () => {
         <div className="p-6 space-y-4">
           {/* Error Banner */}
           {authError && (
-            <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-rose-300 text-xs">
+            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 flex items-start gap-2.5 text-rose-700 dark:text-rose-300 text-xs">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{authError}</span>
             </div>
@@ -115,7 +114,7 @@ export const AuthModal: React.FC = () => {
 
           {/* Reset Success Banner */}
           {resetSuccess && (
-            <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-2.5 text-emerald-300 text-xs">
+            <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 flex items-start gap-2.5 text-emerald-700 dark:text-emerald-300 text-xs">
               <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
               <span>Password reset email dispatched! Please check your inbox.</span>
             </div>
@@ -129,7 +128,7 @@ export const AuthModal: React.FC = () => {
                 id="btn-google-auth"
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
-                className="w-full py-2.5 px-4 rounded-lg bg-zinc-950 hover:bg-zinc-800/80 border border-zinc-700 text-xs font-semibold text-white flex items-center justify-center gap-3 transition-colors shadow-sm disabled:opacity-50"
+                className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-zinc-50 dark:bg-zinc-950 dark:hover:bg-zinc-800/80 border border-zinc-300 dark:border-zinc-700 text-xs font-semibold text-zinc-800 dark:text-white flex items-center justify-center gap-3 transition-colors shadow-sm disabled:opacity-50"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
@@ -153,8 +152,8 @@ export const AuthModal: React.FC = () => {
               </button>
 
               <div className="relative flex items-center justify-center my-4">
-                <div className="w-full border-t border-zinc-800" />
-                <span className="bg-zinc-900 px-3 text-[11px] text-zinc-500 font-mono uppercase">
+                <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
+                <span className="bg-white dark:bg-zinc-900 px-3 text-[11px] text-zinc-400 font-mono uppercase">
                   Or with email
                 </span>
               </div>
@@ -165,36 +164,36 @@ export const AuthModal: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-3.5">
             {authModalMode === 'signup' && (
               <div>
-                <label className="block text-xs font-mono text-zinc-400 mb-1.5">
+                <label className="block text-xs font-mono text-zinc-700 dark:text-zinc-300 mb-1.5">
                   Display Name / Handle
                 </label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <User className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     required
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="e.g. AlgoMaster"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 font-mono"
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-indigo-500 font-mono"
                   />
                 </div>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-mono text-zinc-400 mb-1.5">
+              <label className="block text-xs font-mono text-zinc-700 dark:text-zinc-300 mb-1.5">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 font-mono"
+                  className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-indigo-500 font-mono"
                 />
               </div>
             </div>
@@ -202,7 +201,7 @@ export const AuthModal: React.FC = () => {
             {authModalMode !== 'reset' && (
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-mono text-zinc-400">
+                  <label className="text-xs font-mono text-zinc-700 dark:text-zinc-300">
                     Password
                   </label>
                   {authModalMode === 'signin' && (
@@ -212,14 +211,14 @@ export const AuthModal: React.FC = () => {
                         clearAuthError();
                         setAuthModalMode('reset');
                       }}
-                      className="text-[11px] text-indigo-400 hover:underline"
+                      className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline"
                     >
                       Forgot password?
                     </button>
                   )}
                 </div>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Lock className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="password"
                     required
@@ -227,7 +226,7 @@ export const AuthModal: React.FC = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 font-mono"
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-indigo-500 font-mono"
                   />
                 </div>
               </div>
@@ -236,7 +235,7 @@ export const AuthModal: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-2 py-2.5 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-bold transition-all shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2 disabled:opacity-50 border border-indigo-500/40"
+              className="w-full mt-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-bold transition-all shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {isLoading ? (
                 <span>Processing...</span>
@@ -254,7 +253,7 @@ export const AuthModal: React.FC = () => {
           </form>
 
           {/* Switch mode footer */}
-          <div className="pt-3 border-t border-zinc-800/80 text-center text-xs text-zinc-400">
+          <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800/80 text-center text-xs text-zinc-500 dark:text-zinc-400">
             {authModalMode === 'signin' && (
               <p>
                 Don't have an account?{' '}
@@ -264,7 +263,7 @@ export const AuthModal: React.FC = () => {
                     clearAuthError();
                     setAuthModalMode('signup');
                   }}
-                  className="text-indigo-400 font-bold hover:underline ml-1"
+                  className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline ml-1"
                 >
                   Sign up free
                 </button>
@@ -279,7 +278,7 @@ export const AuthModal: React.FC = () => {
                     clearAuthError();
                     setAuthModalMode('signin');
                   }}
-                  className="text-indigo-400 font-bold hover:underline ml-1"
+                  className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline ml-1"
                 >
                   Sign in
                 </button>
@@ -294,7 +293,7 @@ export const AuthModal: React.FC = () => {
                     clearAuthError();
                     setAuthModalMode('signin');
                   }}
-                  className="text-indigo-400 font-bold hover:underline ml-1"
+                  className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline ml-1"
                 >
                   Back to Sign In
                 </button>

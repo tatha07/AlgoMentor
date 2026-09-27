@@ -190,17 +190,17 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
   const monacoLanguage = language === 'cpp' ? 'cpp' : language === 'python' ? 'python' : language === 'java' ? 'java' : 'javascript';
 
   return (
-    <div className={`flex flex-col border border-zinc-800 rounded-xl overflow-hidden bg-zinc-950 ${isFullscreen ? 'fixed inset-4 z-50 shadow-2xl' : ''}`}>
+    <div className={`flex flex-col border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-950 shadow-sm transition-colors duration-200 ${isFullscreen ? 'fixed inset-4 z-50 shadow-2xl' : ''}`}>
       
       {/* Top Toolbar */}
-      <div className="flex flex-wrap items-center justify-between px-4 py-2.5 bg-zinc-900 border-b border-zinc-800 gap-2">
+      <div className="flex flex-wrap items-center justify-between px-4 py-2.5 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 gap-2">
         {/* Left: Language selector & info */}
         <div className="flex items-center gap-2">
           {onLanguageChange ? (
             <select
               value={language}
               onChange={(e) => onLanguageChange(e.target.value as any)}
-              className="bg-zinc-950 border border-zinc-700/80 text-zinc-200 text-xs font-mono rounded-md px-2.5 py-1 focus:outline-none focus:border-indigo-500 font-semibold"
+              className="bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700/80 text-zinc-800 dark:text-zinc-200 text-xs font-mono rounded-lg px-2.5 py-1 focus:outline-none focus:border-indigo-500 font-semibold shadow-sm"
             >
               <option value="javascript">JavaScript (Node.js)</option>
               <option value="python">Python 3</option>
@@ -208,7 +208,7 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
               <option value="java">Java (OpenJDK)</option>
             </select>
           ) : (
-            <span className="text-xs font-mono uppercase px-2.5 py-1 rounded bg-zinc-950 text-indigo-400 font-bold border border-zinc-800">
+            <span className="text-xs font-mono uppercase px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-950 text-indigo-600 dark:text-indigo-400 font-bold border border-zinc-200 dark:border-zinc-800">
               {language}
             </span>
           )}
@@ -221,18 +221,18 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
         {/* Right: Actions */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Font size toggle */}
-          <div className="hidden sm:flex items-center bg-zinc-950 border border-zinc-800 rounded-md p-0.5 text-[11px] font-mono text-zinc-400">
+          <div className="hidden sm:flex items-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg p-0.5 text-[11px] font-mono text-zinc-600 dark:text-zinc-400 shadow-sm">
             <button
               onClick={() => setFontSize(Math.max(11, fontSize - 1))}
-              className="px-1.5 py-0.5 hover:text-white"
+              className="px-1.5 py-0.5 hover:text-zinc-900 dark:hover:text-white"
               title="Decrease Font Size"
             >
               A-
             </button>
-            <span className="px-1 text-zinc-500">{fontSize}px</span>
+            <span className="px-1 text-zinc-400 dark:text-zinc-500">{fontSize}px</span>
             <button
               onClick={() => setFontSize(Math.min(18, fontSize + 1))}
-              className="px-1.5 py-0.5 hover:text-white"
+              className="px-1.5 py-0.5 hover:text-zinc-900 dark:hover:text-white"
               title="Increase Font Size"
             >
               A+
@@ -244,7 +244,7 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
             <button
               onClick={handleResetStarter}
               title="Reset to Starter Code"
-              className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
+              className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
@@ -254,16 +254,16 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
           <button
             onClick={handleCopy}
             title="Copy Code"
-            className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
+            className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
           </button>
 
           {/* Fullscreen Toggle */}
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-            className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
+            className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
           >
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
@@ -318,16 +318,16 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
 
       {/* Output / Terminal / Test Results Console */}
       {executionResult && (
-        <div className="border-t border-zinc-800 bg-zinc-900/95 flex flex-col max-h-56 overflow-hidden">
+        <div className="border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/95 flex flex-col max-h-56 overflow-hidden">
           {/* Console Header Tabs */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800/80 bg-zinc-950/80 text-xs font-mono">
+          <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/80 text-xs font-mono">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setActiveOutputTab('console')}
                 className={`flex items-center gap-1.5 pb-0.5 border-b-2 font-semibold transition-colors ${
                   activeOutputTab === 'console'
-                    ? 'border-indigo-500 text-white'
-                    : 'border-transparent text-zinc-400 hover:text-zinc-200'
+                    ? 'border-indigo-500 text-zinc-900 dark:text-white'
+                    : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
                 }`}
               >
                 <Terminal className="w-3.5 h-3.5" />
@@ -339,11 +339,11 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
                   onClick={() => setActiveOutputTab('tests')}
                   className={`flex items-center gap-1.5 pb-0.5 border-b-2 font-semibold transition-colors ${
                     activeOutputTab === 'tests'
-                      ? 'border-indigo-500 text-white'
-                      : 'border-transparent text-zinc-400 hover:text-zinc-200'
+                      ? 'border-indigo-500 text-zinc-900 dark:text-white'
+                      : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
                   }`}
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                   <span>
                     Test Cases (
                     {executionResult.testResults.filter(t => t.passed).length}/{executionResult.testResults.length})
@@ -352,7 +352,7 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
               )}
             </div>
 
-            <div className="flex items-center gap-3 text-[11px] text-zinc-400">
+            <div className="flex items-center gap-3 text-[11px] text-zinc-500 dark:text-zinc-400">
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {executionResult.executionTimeMs}ms
@@ -360,8 +360,8 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
               <span
                 className={`px-2 py-0.5 rounded font-bold uppercase text-[10px] ${
                   executionResult.status === 'success'
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20'
+                    : 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20'
                 }`}
               >
                 {executionResult.status === 'success' ? 'Accepted' : 'Error'}
@@ -370,15 +370,15 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
           </div>
 
           {/* Console Content */}
-          <div className="p-4 overflow-y-auto font-mono text-xs max-h-44 space-y-2">
+          <div className="p-4 overflow-y-auto font-mono text-xs max-h-44 space-y-2 bg-white dark:bg-zinc-900/95">
             {activeOutputTab === 'console' && (
               <>
                 {executionResult.stderr ? (
-                  <pre className="text-rose-400 whitespace-pre-wrap leading-relaxed">
+                  <pre className="text-rose-600 dark:text-rose-400 whitespace-pre-wrap leading-relaxed">
                     {executionResult.stderr}
                   </pre>
                 ) : (
-                  <pre className="text-zinc-200 whitespace-pre-wrap leading-relaxed">
+                  <pre className="text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed">
                     {executionResult.stdout || 'Program executed cleanly with no stdout.'}
                   </pre>
                 )}

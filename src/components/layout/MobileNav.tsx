@@ -22,7 +22,7 @@ export const MobileNav: React.FC = () => {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-zinc-950/95 border-t border-zinc-800 backdrop-blur-lg px-2 py-1.5 flex items-center justify-around">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-zinc-950/95 border-t border-zinc-200 dark:border-zinc-800 backdrop-blur-lg px-2 py-1.5 flex items-center justify-around transition-colors duration-200">
       {mobileTabs.map(tab => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
@@ -32,10 +32,10 @@ export const MobileNav: React.FC = () => {
             id={`mobile-tab-${tab.id}`}
             onClick={() => setActiveTab(tab.id)}
             className={`flex flex-col items-center justify-center py-1 px-2 rounded-md transition-colors text-xs ${
-              isActive ? 'text-indigo-400 font-semibold' : 'text-zinc-400 hover:text-zinc-200'
+              isActive ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
             }`}
           >
-            <Icon className={`w-5 h-5 mb-0.5 ${isActive ? 'text-indigo-400' : 'text-zinc-500'}`} />
+            <Icon className={`w-5 h-5 mb-0.5 ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-400 dark:text-zinc-500'}`} />
             <span className="text-[10px]">{tab.label}</span>
           </button>
         );

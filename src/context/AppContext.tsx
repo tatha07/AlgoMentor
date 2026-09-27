@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserProfile, DsaLevel, TutorTone, AssessmentResult, PracticeMode, ProblemDifficulty } from '../types';
-import { DEMO_PROFILES } from '../data/demoProfiles';
 import confetti from 'canvas-confetti';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
@@ -19,14 +18,18 @@ interface AppContextType {
   setSelectedProblemId: (problemId: string | null) => void;
   isAssessmentOpen: boolean;
   setIsAssessmentOpen: (isOpen: boolean) => void;
-  isDevModalOpen: boolean;
-  setIsDevModalOpen: (isOpen: boolean) => void;
   startAssessment: () => void;
   saveAssessmentResult: (result: AssessmentResult) => void;
-  loadDemoProfile: (level: DsaLevel) => void;
   markTopicCompleted: (topicId: string) => void;
   toggleTopicCompletion: (topicId: string) => void;
-  recordSolvedProblem: (problemId: string, problemTitle: string, difficulty: ProblemDifficulty, topicId: string, timeSpentSeconds: number, mode: PracticeMode) => void;
+  recordSolvedProblem: (
+    problemId: string, 
+    problemTitle: string, 
+    difficulty: ProblemDifficulty, 
+    topicId: string, 
+    timeSpentSeconds: number, 
+    mode: PracticeMode
+  ) => void;
   updateTutorTone: (tone: TutorTone) => void;
   updatePreferredLanguage: (lang: 'javascript' | 'python' | 'cpp' | 'java') => void;
   setActiveTrack: (track: 'beginner' | 'intermediate' | 'pro') => void;
@@ -34,34 +37,79 @@ interface AppContextType {
   triggerConfetti: () => void;
 }
 
-const STORAGE_KEY = 'algomentor_user_profile_v1';
-const THEME_KEY = 'algomentor_theme_v1';
+const STORAGE_KEY = 'algomentor_user_profile_v2';
+const THEME_KEY = 'algomentor_theme_v2';
 
-const DEFAULT_PROFILE: UserProfile = DEMO_PROFILES.intermediate;
+const INITIAL_PROFILE: UserProfile = {
+  id: '',
+  name: 'DSA Explorer',
+  level: 'intermediate',
+  preferredLanguage: 'javascript',
+  activeTrack: 'intermediate',
+  completedTopicIds: [],
+  solvedProblems: [],
+  streakDays: 1,
+  lastActiveDate: new Date().toISOString(),
+  assessmentResult: null,
+  weakTopics: [],
+  strongTopics: [],
+  currentTopicId: 'arrays-two-pointers',
+  tutorTone: 'balanced',
+  dailyGoalProblems: 2,
+};
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     try {
+      // Purge any legacy demo profile from storage
+      localStorage.removeItem('algomentor_user_profile_v1');
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (parsed && !parsed.id?.includes('demo')) {
+          return parsed;
+        }
       }
     } catch (e) {
       console.warn('Failed to load user profile from localStorage:', e);
     }
-    return DEFAULT_PROFILE;
+    return INITIAL_PROFILE;
   });
 
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try {
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved === 'dark' || saved === 'light') return saved;
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
+    } catch {}
+    return 'dark';
+  });
+
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [selectedProblemId, setSelectedProblemId] = useState<string | null>(null);
   const [isAssessmentOpen, setIsAssessmentOpen] = useState<boolean>(false);
-  const [isDevModalOpen, setIsDevModalOpen] = useState<boolean>(false);
 
-  // Sync with Firebase Firestore whenever user logs in or user doc updates
+  // Sync theme to document and local storage
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+      root.setAttribute('data-theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      root.setAttribute('data-theme', 'light');
+    }
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch {}
+  }, [theme]);
+
+  // Sync with Firebase Firestore whenever user logs in or their user document updates
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
@@ -72,37 +120,72 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setUserProfile(prev => ({
               ...prev,
               id: firebaseUser.uid,
-              name: data.displayName || firebaseUser.displayName || prev.name,
-              level: data.skillLevel || prev.level,
-              preferredLanguage: data.preferredLanguage || prev.preferredLanguage,
-              streakDays: data.streakDays !== undefined ? data.streakDays : prev.streakDays,
-              completedTopicIds: data.completedTopicIds || prev.completedTopicIds,
-              solvedProblems: data.solvedProblems || prev.solvedProblems,
-              tutorTone: data.tutorTone || prev.tutorTone,
+              name: data.displayName || firebaseUser.displayName || prev.name || 'DSA Explorer',
+              level: data.skillLevel || prev.level || 'intermediate',
+              preferredLanguage: data.preferredLanguage || prev.preferredLanguage || 'javascript',
+              activeTrack: data.activeTrack || prev.activeTrack || 'intermediate',
+              streakDays: typeof data.streakDays === 'number' ? data.streakDays : 1,
+              completedTopicIds: Array.isArray(data.completedTopicIds) ? data.completedTopicIds : [],
+              solvedProblems: Array.isArray(data.solvedProblems) ? data.solvedProblems : [],
+              tutorTone: data.tutorTone || prev.tutorTone || 'balanced',
+            }));
+          } else {
+            // First time login - set user document
+            const initialDoc = {
+              uid: firebaseUser.uid,
+              displayName: firebaseUser.displayName || 'DSA Explorer',
+              email: firebaseUser.email || '',
+              skillLevel: 'intermediate',
+              activeTrack: 'intermediate',
+              preferredLanguage: 'javascript',
+              streakDays: 1,
+              completedTopicIds: [],
+              solvedProblems: [],
+              tutorTone: 'balanced',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            setDoc(userDocRef, initialDoc, { merge: true }).catch(console.error);
+            setUserProfile(prev => ({
+              ...prev,
+              id: firebaseUser.uid,
+              name: initialDoc.displayName,
+              completedTopicIds: [],
+              solvedProblems: [],
+              streakDays: 1,
             }));
           }
         });
         return () => unsubscribeDoc();
+      } else {
+        // User logged out - reset profile
+        setUserProfile(INITIAL_PROFILE);
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch {}
       }
     });
 
     return () => unsubscribeAuth();
   }, []);
 
-  // Sync profile to localStorage and Cloud Firestore
+  // Sync profile to localStorage and Cloud Firestore when profile changes and user is signed in
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(userProfile));
-    } catch (e) {
-      console.warn('Failed to persist user profile locally:', e);
+    if (userProfile.id && !userProfile.id.includes('demo')) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(userProfile));
+      } catch (e) {
+        console.warn('Failed to persist user profile locally:', e);
+      }
     }
 
-    if (auth.currentUser) {
+    if (auth.currentUser && userProfile.id === auth.currentUser.uid) {
       const userDocRef = doc(db, 'users', auth.currentUser.uid);
       setDoc(userDocRef, {
         displayName: userProfile.name,
         skillLevel: userProfile.level,
         preferredLanguage: userProfile.preferredLanguage,
+        activeTrack: userProfile.activeTrack,
         streakDays: userProfile.streakDays,
         completedTopicIds: userProfile.completedTopicIds,
         solvedProblems: userProfile.solvedProblems,
@@ -113,19 +196,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
     }
   }, [userProfile]);
-
-  // Sync theme
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    try {
-      localStorage.setItem(THEME_KEY, theme);
-    } catch {}
-  }, [theme]);
 
   const toggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
@@ -158,14 +228,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
     setIsAssessmentOpen(false);
     triggerConfetti();
-  };
-
-  const loadDemoProfile = (level: DsaLevel) => {
-    const profile = DEMO_PROFILES[level];
-    if (profile) {
-      setUserProfile({ ...profile });
-      triggerConfetti();
-    }
   };
 
   const markTopicCompleted = (topicId: string) => {
@@ -236,12 +298,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const resetAllProgress = () => {
+    if (!auth.currentUser) return;
     const fresh: UserProfile = {
-      id: 'fresh-user',
-      name: 'DSA Explorer',
-      level: 'newbie',
+      id: auth.currentUser.uid,
+      name: auth.currentUser.displayName || 'DSA Explorer',
+      level: 'intermediate',
       preferredLanguage: 'javascript',
-      activeTrack: 'beginner',
+      activeTrack: 'intermediate',
       completedTopicIds: [],
       solvedProblems: [],
       streakDays: 1,
@@ -249,11 +312,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       assessmentResult: null,
       weakTopics: [],
       strongTopics: [],
-      currentTopicId: 'big-o-analysis',
+      currentTopicId: 'arrays-two-pointers',
       tutorTone: 'balanced',
       dailyGoalProblems: 2,
     };
     setUserProfile(fresh);
+    const userDocRef = doc(db, 'users', auth.currentUser.uid);
+    setDoc(userDocRef, {
+      completedTopicIds: [],
+      solvedProblems: [],
+      streakDays: 1,
+      updatedAt: new Date().toISOString(),
+    }, { merge: true }).catch(console.error);
   };
 
   return (
@@ -271,11 +341,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSelectedProblemId,
         isAssessmentOpen,
         setIsAssessmentOpen,
-        isDevModalOpen,
-        setIsDevModalOpen,
         startAssessment,
         saveAssessmentResult,
-        loadDemoProfile,
         markTopicCompleted,
         toggleTopicCompletion,
         recordSolvedProblem,

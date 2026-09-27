@@ -5,12 +5,11 @@ import {
   Bot, 
   GraduationCap, 
   Code2, 
-  Users, 
   Radio,
+  Users, 
   FileCode2, 
   GitFork, 
   Youtube, 
-  Sparkles,
   Award
 } from 'lucide-react';
 
@@ -30,7 +29,7 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-64 border-r border-zinc-800 bg-zinc-900/60 dark:bg-zinc-950/80 backdrop-blur-sm shrink-0 select-none">
+    <aside className="hidden md:flex flex-col w-64 border-r border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-sm shrink-0 select-none transition-colors duration-200">
       {/* Navigation Links */}
       <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
         <div className="px-3 pb-2 text-[11px] font-semibold tracking-wider text-zinc-500 uppercase font-mono">
@@ -46,20 +45,20 @@ export const Sidebar: React.FC = () => {
               onClick={() => setActiveTab(item.id)}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 shadow-sm shadow-indigo-950/20'
-                  : 'text-zinc-400 hover:bg-zinc-800/80 hover:text-zinc-100 border border-transparent'
+                  ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30 shadow-sm'
+                  : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900/80 dark:hover:text-zinc-100 border border-transparent'
               }`}
             >
               <div className="flex items-center gap-3">
-                <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-400' : 'text-zinc-500'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-400 dark:text-zinc-500'}`} />
                 <span className={isActive ? 'font-semibold' : ''}>{item.label}</span>
               </div>
               {item.badge && (
                 <span
                   className={`text-[10px] px-1.5 py-0.5 rounded font-mono uppercase font-semibold ${
                     isActive
-                      ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                      : 'bg-zinc-800 text-zinc-400 border border-zinc-700/60'
+                      ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30'
+                      : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700/60'
                   }`}
                 >
                   {item.badge}
@@ -71,22 +70,22 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* User Progress Mini Card at bottom */}
-      <div className="p-3 m-3 rounded-lg bg-zinc-900/80 border border-zinc-800">
+      <div className="p-3 m-3 rounded-xl bg-zinc-50 dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 transition-colors">
         <div className="flex items-center justify-between text-xs mb-1.5">
-          <span className="text-zinc-400 font-medium">Track Mastery</span>
-          <span className="font-mono text-indigo-400 font-bold">
+          <span className="text-zinc-600 dark:text-zinc-400 font-medium">Track Mastery</span>
+          <span className="font-mono text-indigo-600 dark:text-indigo-400 font-bold">
             {userProfile.completedTopicIds.length}/13 Topics
           </span>
         </div>
-        <div className="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+        <div className="w-full bg-zinc-200 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
           <div
             className="bg-gradient-to-r from-indigo-500 to-violet-500 h-full rounded-full transition-all duration-500"
             style={{ width: `${Math.min(100, Math.round((userProfile.completedTopicIds.length / 13) * 100))}%` }}
           />
         </div>
-        <div className="mt-2.5 pt-2.5 border-t border-zinc-800 flex items-center justify-between text-[11px] text-zinc-400">
+        <div className="mt-2.5 pt-2.5 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400">
           <span className="capitalize">Track: {userProfile.activeTrack}</span>
-          <span className="text-amber-400 font-semibold flex items-center gap-1">
+          <span className="text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
             <Award className="w-3 h-3" />
             {userProfile.solvedProblems.length} Solved
           </span>

@@ -264,24 +264,24 @@ export const CollabRoomsView: React.FC = () => {
     return (
       <div className="space-y-6">
         {/* Banner */}
-        <div className="p-6 md:p-8 rounded-xl bg-zinc-900 border border-zinc-800 shadow-xl relative overflow-hidden">
+        <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-br from-white via-indigo-50/40 to-slate-100 dark:from-zinc-900 dark:via-zinc-900/90 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-sm relative overflow-hidden transition-colors duration-200">
           <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
           
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2 max-w-2xl">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-md flex items-center gap-1.5">
-                  <Radio className="w-3 h-3 animate-pulse text-emerald-400" />
+                <span className="px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-lg flex items-center gap-1.5">
+                  <Radio className="w-3 h-3 animate-pulse text-emerald-500" />
                   Live Collaboration
                 </span>
-                <span className="px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 rounded-md">
+                <span className="px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-lg">
                   WebSockets + Monaco
                 </span>
               </div>
-              <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight font-mono">
+              <h1 className="text-2xl md:text-3xl font-extrabold text-zinc-900 dark:text-white tracking-tight font-mono">
                 Peer Coding & Group Study Rooms
               </h1>
-              <p className="text-sm text-zinc-400 leading-relaxed">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
                 Code together in real-time with fellow engineers. Share an interactive Monaco Editor, synchronize code test runs, brainstorm DSA solutions, and prepare for collaborative interviews.
               </p>
             </div>
@@ -290,7 +290,7 @@ export const CollabRoomsView: React.FC = () => {
               <button
                 onClick={() => setIsCreateModalOpen(true)}
                 id="btn-create-collab-room"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-bold transition-all shadow-md shadow-indigo-600/25 border border-indigo-500/40"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-bold transition-all shadow-md shadow-indigo-600/20"
               >
                 <Plus className="w-4 h-4" />
                 <span>Create Study Room</span>
@@ -300,9 +300,9 @@ export const CollabRoomsView: React.FC = () => {
         </div>
 
         {/* Quick Join By Room ID bar */}
-        <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs font-mono text-zinc-300">
-            <Users className="w-4 h-4 text-indigo-400 shrink-0" />
+        <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-2 text-xs font-mono text-zinc-700 dark:text-zinc-300">
+            <Users className="w-4 h-4 text-indigo-500 shrink-0" />
             <span>Have a room code from a friend?</span>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -311,7 +311,7 @@ export const CollabRoomsView: React.FC = () => {
               value={customRoomIdInput}
               onChange={(e) => setCustomRoomIdInput(e.target.value)}
               placeholder="e.g. room-two-sum-study"
-              className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-white placeholder-zinc-500 font-mono w-full sm:w-60 focus:outline-none focus:border-indigo-500"
+              className="bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 font-mono w-full sm:w-60 focus:outline-none focus:border-indigo-500"
             />
             <button
               onClick={() => {
@@ -320,7 +320,7 @@ export const CollabRoomsView: React.FC = () => {
                 }
               }}
               disabled={!customRoomIdInput.trim()}
-              className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white font-mono text-xs font-semibold disabled:opacity-40 transition-colors shrink-0"
+              className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-mono text-xs font-semibold disabled:opacity-40 transition-colors shrink-0 shadow-sm"
             >
               Join
             </button>
@@ -330,13 +330,13 @@ export const CollabRoomsView: React.FC = () => {
         {/* Active Study Rooms Grid */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-white font-mono uppercase tracking-wider flex items-center gap-2">
-              <Radio className="w-4 h-4 text-indigo-400" />
+            <h2 className="text-sm font-bold text-zinc-900 dark:text-white font-mono uppercase tracking-wider flex items-center gap-2">
+              <Radio className="w-4 h-4 text-indigo-500" />
               Active Public Study Rooms
             </h2>
             <button
               onClick={fetchRooms}
-              className="text-xs font-mono text-zinc-400 hover:text-white"
+              className="text-xs font-mono text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
             >
               Refresh
             </button>
@@ -347,12 +347,12 @@ export const CollabRoomsView: React.FC = () => {
               Loading active collaboration rooms...
             </div>
           ) : rooms.length === 0 ? (
-            <div className="p-12 rounded-xl bg-zinc-900/40 border border-zinc-800 text-center space-y-3">
-              <Code2 className="w-8 h-8 text-zinc-600 mx-auto" />
-              <p className="text-xs font-mono text-zinc-400">No rooms active right now.</p>
+            <div className="p-12 rounded-xl bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 text-center space-y-3 shadow-sm">
+              <Code2 className="w-8 h-8 text-zinc-400 dark:text-zinc-600 mx-auto" />
+              <p className="text-xs font-mono text-zinc-600 dark:text-zinc-400">No rooms active right now.</p>
               <button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-mono font-bold hover:bg-indigo-500"
+                className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-mono font-bold hover:bg-indigo-500 shadow-sm"
               >
                 Create the first room
               </button>
@@ -362,32 +362,32 @@ export const CollabRoomsView: React.FC = () => {
               {rooms.map(room => (
                 <div
                   key={room.id}
-                  className="p-5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-all flex flex-col justify-between space-y-4 group"
+                  className="p-5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all flex flex-col justify-between space-y-4 group shadow-sm hover:shadow-md"
                 >
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-3">
-                      <h3 className="text-sm font-bold font-mono text-white group-hover:text-indigo-300 transition-colors">
+                      <h3 className="text-sm font-bold font-mono text-zinc-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">
                         {room.name}
                       </h3>
-                      <span className="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shrink-0">
+                      <span className="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 shrink-0">
                         {room.language}
                       </span>
                     </div>
 
-                    <p className="text-xs text-zinc-400">
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
                       Problem Target:{' '}
-                      <span className="text-zinc-200 font-semibold">{room.problemTitle}</span>
+                      <span className="text-zinc-900 dark:text-zinc-200 font-semibold">{room.problemTitle}</span>
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t border-zinc-800/80 text-xs font-mono">
-                    <div className="flex items-center gap-3 text-zinc-400">
-                      <span className="flex items-center gap-1.5 text-emerald-400">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  <div className="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-800/80 text-xs font-mono">
+                    <div className="flex items-center gap-3 text-zinc-500 dark:text-zinc-400">
+                      <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                         {room.activeUsersCount} Active
                       </span>
                       <span className="flex items-center gap-1">
-                        <MessageSquare className="w-3.5 h-3.5 text-zinc-500" />
+                        <MessageSquare className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
                         {room.messageCount}
                       </span>
                     </div>
@@ -409,13 +409,13 @@ export const CollabRoomsView: React.FC = () => {
 
         {/* Create Room Modal */}
         {isCreateModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md">
-            <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl p-6 space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-                <h3 className="text-sm font-bold font-mono text-white">Create Collaborative Study Room</h3>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/70 dark:bg-zinc-950/80 backdrop-blur-md">
+            <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-6 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800">
+                <h3 className="text-sm font-bold font-mono text-zinc-900 dark:text-white">Create Collaborative Study Room</h3>
                 <button
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="text-zinc-400 hover:text-white"
+                  className="text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                 >
                   ✕
                 </button>
@@ -423,7 +423,7 @@ export const CollabRoomsView: React.FC = () => {
 
               <form onSubmit={handleCreateRoom} className="space-y-3.5">
                 <div>
-                  <label className="block text-xs font-mono text-zinc-400 mb-1">
+                  <label className="block text-xs font-mono text-zinc-700 dark:text-zinc-400 mb-1">
                     Room Title / Subject
                   </label>
                   <input
@@ -432,18 +432,18 @@ export const CollabRoomsView: React.FC = () => {
                     value={newRoomName}
                     onChange={(e) => setNewRoomName(e.target.value)}
                     placeholder="e.g. Dynamic Programming Study Circle"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white placeholder-zinc-500 font-mono focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 font-mono focus:outline-none focus:border-indigo-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono text-zinc-400 mb-1">
+                  <label className="block text-xs font-mono text-zinc-700 dark:text-zinc-400 mb-1">
                     Target DSA Problem
                   </label>
                   <select
                     value={newRoomProblem}
                     onChange={(e) => setNewRoomProblem(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-900 dark:text-white font-mono focus:outline-none focus:border-indigo-500"
                   >
                     {PRACTICE_PROBLEMS.map(p => (
                       <option key={p.id} value={p.id}>
@@ -454,13 +454,13 @@ export const CollabRoomsView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono text-zinc-400 mb-1">
+                  <label className="block text-xs font-mono text-zinc-700 dark:text-zinc-400 mb-1">
                     Primary Programming Language
                   </label>
                   <select
                     value={newRoomLanguage}
                     onChange={(e) => setNewRoomLanguage(e.target.value as any)}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-900 dark:text-white font-mono focus:outline-none focus:border-indigo-500"
                   >
                     <option value="javascript">JavaScript</option>
                     <option value="python">Python 3</option>
@@ -473,7 +473,7 @@ export const CollabRoomsView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setIsCreateModalOpen(false)}
-                    className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 text-xs font-mono hover:bg-zinc-700"
+                    className="px-3 py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-mono dark:hover:bg-zinc-700"
                   >
                     Cancel
                   </button>
@@ -494,13 +494,13 @@ export const CollabRoomsView: React.FC = () => {
 
   // 2. Active Collaborative Room View
   return (
-    <div className="space-y-4 flex flex-col h-[calc(100vh-140px)]">
+    <div className="space-y-4 flex flex-col h-[calc(100vh-140px)] transition-colors duration-200">
       {/* Active Room Top Bar */}
-      <div className="p-3.5 rounded-xl bg-zinc-900 border border-zinc-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-3 shrink-0 shadow-sm">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setActiveRoomId(null)}
-            className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
             title="Leave Room"
           >
             <LogOut className="w-4 h-4" />
@@ -508,11 +508,11 @@ export const CollabRoomsView: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <h2 className="text-sm font-bold font-mono text-white">{roomName}</h2>
+              <h2 className="text-sm font-bold font-mono text-zinc-900 dark:text-white">{roomName}</h2>
             </div>
-            <p className="text-[11px] font-mono text-zinc-400">
+            <p className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400">
               Problem:{' '}
-              <span className="text-indigo-300 font-semibold">{currentProblem.title}</span> ({currentProblem.difficulty})
+              <span className="text-indigo-600 dark:text-indigo-300 font-semibold">{currentProblem.title}</span> ({currentProblem.difficulty})
             </p>
           </div>
         </div>
@@ -525,22 +525,22 @@ export const CollabRoomsView: React.FC = () => {
                 key={idx}
                 title={user.userName}
                 style={{ backgroundColor: user.color }}
-                className="w-7 h-7 rounded-full border-2 border-zinc-900 flex items-center justify-center text-white text-[10px] font-mono font-bold shadow-sm"
+                className="w-7 h-7 rounded-full border-2 border-white dark:border-zinc-900 flex items-center justify-center text-white text-[10px] font-mono font-bold shadow-sm"
               >
                 {user.userName[0]?.toUpperCase() || 'P'}
               </div>
             ))}
           </div>
-          <span className="text-xs font-mono text-zinc-400 hidden sm:inline">
+          <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 hidden sm:inline">
             {activeUsers.length} Online
           </span>
 
           {/* Share / Copy Room ID */}
           <button
             onClick={handleCopyInvite}
-            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono text-zinc-300 hover:text-white bg-zinc-800 hover:bg-zinc-700 rounded-md transition-colors border border-zinc-700"
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 rounded-lg transition-colors border border-zinc-200 dark:border-zinc-700"
           >
-            {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Share2 className="w-3.5 h-3.5" />}
+            {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Share2 className="w-3.5 h-3.5" />}
             <span className="hidden md:inline">{copiedLink ? 'Copied ID' : 'Share Room'}</span>
           </button>
         </div>
@@ -567,42 +567,42 @@ export const CollabRoomsView: React.FC = () => {
         </div>
 
         {/* Right 1 Col: Problem Specs & Live Peer Chat */}
-        <div className="flex flex-col rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden h-full">
+        <div className="flex flex-col rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 overflow-hidden h-full shadow-sm">
           {/* Tabs */}
-          <div className="flex items-center border-b border-zinc-800 bg-zinc-950/80 p-1">
+          <div className="flex items-center border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/80 p-1">
             <button
               onClick={() => setActiveTab('problem')}
-              className={`flex-1 py-1.5 text-xs font-mono font-bold rounded-md flex items-center justify-center gap-1.5 transition-colors ${
+              className={`flex-1 py-1.5 text-xs font-mono font-bold rounded-lg flex items-center justify-center gap-1.5 transition-colors ${
                 activeTab === 'problem'
-                  ? 'bg-zinc-800 text-white'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
-              <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
+              <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
               <span>Problem Specs</span>
             </button>
             <button
               onClick={() => setActiveTab('chat')}
-              className={`flex-1 py-1.5 text-xs font-mono font-bold rounded-md flex items-center justify-center gap-1.5 transition-colors ${
+              className={`flex-1 py-1.5 text-xs font-mono font-bold rounded-lg flex items-center justify-center gap-1.5 transition-colors ${
                 activeTab === 'chat'
-                  ? 'bg-zinc-800 text-white'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
-              <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+              <MessageSquare className="w-3.5 h-3.5 text-emerald-500" />
               <span>Room Chat ({messages.length})</span>
             </button>
           </div>
 
           {/* Problem Specs View */}
           {activeTab === 'problem' && (
-            <div className="p-4 overflow-y-auto flex-1 space-y-4 text-xs font-mono text-zinc-300">
+            <div className="p-4 overflow-y-auto flex-1 space-y-4 text-xs font-mono text-zinc-700 dark:text-zinc-300">
               <div className="flex items-center justify-between">
-                <span className="text-zinc-400">Switch Problem:</span>
+                <span className="text-zinc-500 dark:text-zinc-400">Switch Problem:</span>
                 <select
                   value={selectedProblemId}
                   onChange={(e) => handleProblemChange(e.target.value)}
-                  className="bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className="bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded px-2 py-1 text-xs text-zinc-900 dark:text-white focus:outline-none focus:border-indigo-500 font-mono"
                 >
                   {PRACTICE_PROBLEMS.map(p => (
                     <option key={p.id} value={p.id}>{p.title}</option>
@@ -611,22 +611,22 @@ export const CollabRoomsView: React.FC = () => {
               </div>
 
               <div>
-                <h4 className="font-bold text-white mb-1">Description</h4>
-                <p className="text-zinc-400 leading-relaxed font-sans text-xs">
+                <h4 className="font-bold text-zinc-900 dark:text-white mb-1">Description</h4>
+                <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed font-sans text-xs">
                   {currentProblem.description}
                 </p>
               </div>
 
               <div>
-                <h4 className="font-bold text-white mb-1">Examples</h4>
+                <h4 className="font-bold text-zinc-900 dark:text-white mb-1">Examples</h4>
                 <div className="space-y-2">
                   {currentProblem.examples.map((ex, idx) => (
-                    <div key={idx} className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800 space-y-1">
+                    <div key={idx} className="p-2.5 rounded-lg bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 space-y-1">
                       <div>
-                        <span className="text-zinc-500">Input:</span> <code>{ex.input}</code>
+                        <span className="text-zinc-500">Input:</span> <code className="text-zinc-800 dark:text-zinc-200">{ex.input}</code>
                       </div>
                       <div>
-                        <span className="text-zinc-500">Output:</span> <code className="text-emerald-400">{ex.output}</code>
+                        <span className="text-zinc-500">Output:</span> <code className="text-emerald-600 dark:text-emerald-400 font-bold">{ex.output}</code>
                       </div>
                       {ex.explanation && (
                         <div className="text-[11px] text-zinc-500 italic font-sans">{ex.explanation}</div>
@@ -637,8 +637,8 @@ export const CollabRoomsView: React.FC = () => {
               </div>
 
               <div>
-                <h4 className="font-bold text-white mb-1">Constraints</h4>
-                <ul className="list-disc pl-4 text-zinc-400 space-y-0.5 text-[11px]">
+                <h4 className="font-bold text-zinc-900 dark:text-white mb-1">Constraints</h4>
+                <ul className="list-disc pl-4 text-zinc-600 dark:text-zinc-400 space-y-0.5 text-[11px]">
                   {currentProblem.constraints.map((c, i) => (
                     <li key={i}>{c}</li>
                   ))}
@@ -653,30 +653,30 @@ export const CollabRoomsView: React.FC = () => {
               {/* Message History */}
               <div className="flex-1 p-3 overflow-y-auto space-y-2.5 text-xs font-mono">
                 {messages.map(msg => (
-                  <div key={msg.id} className="p-2 rounded-lg bg-zinc-950/80 border border-zinc-800/80 space-y-0.5">
+                  <div key={msg.id} className="p-2 rounded-lg bg-zinc-50 dark:bg-zinc-950/80 border border-zinc-200 dark:border-zinc-800/80 space-y-0.5">
                     <div className="flex items-center justify-between text-[10px] text-zinc-500">
-                      <span className="font-bold text-indigo-300">{msg.userName}</span>
+                      <span className="font-bold text-indigo-600 dark:text-indigo-300">{msg.userName}</span>
                       <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
-                    <p className="text-zinc-200 text-xs whitespace-pre-wrap font-sans">{msg.text}</p>
+                    <p className="text-zinc-800 dark:text-zinc-200 text-xs whitespace-pre-wrap font-sans">{msg.text}</p>
                   </div>
                 ))}
                 <div ref={chatEndRef} />
               </div>
 
               {/* Chat Input */}
-              <form onSubmit={handleSendMessage} className="p-2.5 border-t border-zinc-800 bg-zinc-950 flex items-center gap-2">
+              <form onSubmit={handleSendMessage} className="p-2.5 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 flex items-center gap-2">
                 <input
                   type="text"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder="Chat with room peers..."
-                  className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-white placeholder-zinc-500 font-mono focus:outline-none focus:border-indigo-500"
+                  className="flex-1 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 font-mono focus:outline-none focus:border-indigo-500"
                 />
                 <button
                   type="submit"
                   disabled={!chatInput.trim()}
-                  className="p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-40 transition-colors"
+                  className="p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-40 transition-colors shadow-sm"
                 >
                   <Send className="w-3.5 h-3.5" />
                 </button>

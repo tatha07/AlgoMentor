@@ -1,1 +1,62 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *, .dark, .dark *));
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  .dark, [data-theme="dark"] {
+    color-scheme: dark;
+  }
+}
+
+/* Light / Dark Mode Surface & Text Helpers */
+.bg-app {
+  background-color: #f8fafc;
+}
+.dark .bg-app {
+  background-color: #09090b;
+}
+
+.bg-surface {
+  background-color: #ffffff;
+}
+.dark .bg-surface {
+  background-color: #18181b;
+}
+
+.bg-surface-subtle {
+  background-color: #f1f5f9;
+}
+.dark .bg-surface-subtle {
+  background-color: #121215;
+}
+
+.border-theme {
+  border-color: #e2e8f0;
+}
+.dark .border-theme {
+  border-color: #27272a;
+}
+
+.text-primary-theme {
+  color: #0f172a;
+}
+.dark .text-primary-theme {
+  color: #f4f4f5;
+}
+
+.text-secondary-theme {
+  color: #475569;
+}
+.dark .text-secondary-theme {
+  color: #a1a1aa;
+}
+
+.text-muted-theme {
+  color: #64748b;
+}
+.dark .text-muted-theme {
+  color: #71717a;
+}

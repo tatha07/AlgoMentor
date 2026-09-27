@@ -143,19 +143,19 @@ export const AssessmentModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden my-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/70 dark:bg-zinc-950/80 backdrop-blur-md overflow-y-auto">
+      <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden my-8 transition-colors duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-950/50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/50">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <div className="p-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white font-mono">
+              <h2 className="text-base font-bold text-zinc-900 dark:text-white font-mono">
                 {isComplete ? 'Diagnostic Calibration Complete' : 'AI DSA Level Diagnostic'}
               </h2>
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 {isComplete
                   ? 'Your personalized curriculum has been calibrated.'
                   : `Question ${currentIndex + 1} of ${total} • ${currentQ.topic}`}
@@ -165,7 +165,7 @@ export const AssessmentModal: React.FC = () => {
           <button
             onClick={() => setIsAssessmentOpen(false)}
             id="btn-close-assessment"
-            className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800 transition-colors"
+            className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -187,12 +187,12 @@ export const AssessmentModal: React.FC = () => {
             {/* Question */}
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-[11px] font-semibold font-mono uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/60">
+                <span className="text-[11px] font-semibold font-mono uppercase px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700/60">
                   {currentQ.difficulty}
                 </span>
-                <span className="text-xs text-indigo-400 font-mono">Testing: {currentQ.testedConcept}</span>
+                <span className="text-xs text-indigo-600 dark:text-indigo-400 font-mono">Testing: {currentQ.testedConcept}</span>
               </div>
-              <h3 className="text-lg font-semibold text-white leading-relaxed">
+              <h3 className="text-lg font-semibold text-zinc-900 dark:text-white leading-relaxed">
                 {currentQ.question}
               </h3>
             </div>
@@ -201,18 +201,18 @@ export const AssessmentModal: React.FC = () => {
             <div className="space-y-3">
               {currentQ.options.map(opt => {
                 const isSelected = selectedOptionId === opt.id;
-                let optStyle = 'border-zinc-800 hover:border-zinc-700 bg-zinc-900/90 text-zinc-200';
+                let optStyle = 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/90 text-zinc-800 dark:text-zinc-200 shadow-sm';
 
                 if (isAnswered) {
                   if (opt.isCorrect) {
-                    optStyle = 'border-emerald-500/80 bg-emerald-500/10 text-emerald-300 font-medium';
+                    optStyle = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 font-medium';
                   } else if (isSelected && !opt.isCorrect) {
-                    optStyle = 'border-rose-500/80 bg-rose-500/10 text-rose-300';
+                    optStyle = 'border-rose-500 bg-rose-50 dark:bg-rose-500/10 text-rose-800 dark:text-rose-300';
                   } else {
-                    optStyle = 'border-zinc-800/40 bg-zinc-950/40 text-zinc-500 opacity-60';
+                    optStyle = 'border-zinc-200 dark:border-zinc-800/40 bg-zinc-100/50 dark:bg-zinc-950/40 text-zinc-400 opacity-60';
                   }
                 } else if (isSelected) {
-                  optStyle = 'border-indigo-500 bg-indigo-500/10 text-white font-medium ring-1 ring-indigo-500/50';
+                  optStyle = 'border-indigo-600 dark:border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-900 dark:text-white font-medium ring-1 ring-indigo-500/50';
                 }
 
                 return (
@@ -221,24 +221,24 @@ export const AssessmentModal: React.FC = () => {
                     id={`opt-${currentQ.id}-${opt.id}`}
                     onClick={() => handleSelectOption(opt.id)}
                     disabled={isAnswered}
-                    className={`w-full text-left p-4 rounded-lg border transition-all flex items-start gap-3 ${optStyle}`}
+                    className={`w-full text-left p-4 rounded-xl border transition-all flex items-start gap-3 ${optStyle}`}
                   >
-                    <span className="w-6 h-6 rounded-md bg-zinc-800 flex items-center justify-center text-xs font-mono font-bold shrink-0 mt-0.5 uppercase text-zinc-300">
+                    <span className="w-6 h-6 rounded-lg bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-xs font-mono font-bold shrink-0 mt-0.5 uppercase text-zinc-700 dark:text-zinc-300">
                       {opt.id}
                     </span>
                     <div className="flex-1">
                       <p className="text-sm">{opt.text}</p>
                       {isAnswered && (
-                        <p className={`text-xs mt-2 pt-2 border-t border-zinc-800/60 ${opt.isCorrect ? 'text-emerald-400' : 'text-zinc-400'}`}>
+                        <p className={`text-xs mt-2 pt-2 border-t border-zinc-200 dark:border-zinc-800/60 ${opt.isCorrect ? 'text-emerald-700 dark:text-emerald-400' : 'text-zinc-600 dark:text-zinc-400'}`}>
                           {opt.explanation}
                         </p>
                       )}
                     </div>
                     {isAnswered && opt.isCorrect && (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
                     )}
                     {isAnswered && isSelected && !opt.isCorrect && (
-                      <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                      <XCircle className="w-5 h-5 text-rose-500 shrink-0" />
                     )}
                   </button>
                 );
@@ -246,7 +246,7 @@ export const AssessmentModal: React.FC = () => {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
+            <div className="flex items-center justify-between pt-4 border-t border-zinc-200 dark:border-zinc-800">
               <span className="text-xs text-zinc-500 font-mono">
                 {total - currentIndex - 1} questions remaining
               </span>
@@ -256,7 +256,7 @@ export const AssessmentModal: React.FC = () => {
                     onClick={handleConfirmAnswer}
                     id="btn-confirm-answer"
                     disabled={!selectedOptionId}
-                    className="px-5 py-2 text-sm font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-50 disabled:pointer-events-none transition-colors font-mono border border-indigo-500/40"
+                    className="px-5 py-2 text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-50 disabled:pointer-events-none transition-colors font-mono"
                   >
                     Submit Answer
                   </button>
@@ -264,7 +264,7 @@ export const AssessmentModal: React.FC = () => {
                   <button
                     onClick={handleNext}
                     id="btn-next-question"
-                    className="flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors font-mono border border-indigo-500/40"
+                    className="flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition-colors font-mono"
                   >
                     <span>{currentIndex + 1 < total ? 'Next Question' : 'View Calibration Report'}</span>
                     <ArrowRight className="w-4 h-4" />
@@ -277,21 +277,21 @@ export const AssessmentModal: React.FC = () => {
           /* Results Screen */
           <div className="p-6 space-y-6">
             {/* Top Score Banner */}
-            <div className="p-6 rounded-xl bg-zinc-900 border border-zinc-800 text-center space-y-3">
-              <div className="inline-flex p-3 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <div className="p-6 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-center space-y-3">
+              <div className="inline-flex p-3 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20">
                 <Award className="w-8 h-8" />
               </div>
               <div>
                 <span className="text-xs font-mono uppercase tracking-wider text-zinc-500">Assessed Skill Level</span>
-                <h3 className="text-2xl font-bold text-white capitalize font-mono mt-0.5">
+                <h3 className="text-2xl font-bold text-zinc-900 dark:text-white capitalize font-mono mt-0.5">
                   {finalResult?.level} Developer
                 </h3>
               </div>
               <div className="flex items-center justify-center gap-4 text-sm font-mono pt-1">
-                <div className="px-3 py-1 bg-zinc-800 rounded-md text-indigo-400 font-bold border border-zinc-700">
+                <div className="px-3 py-1 bg-white dark:bg-zinc-800 rounded-lg text-indigo-600 dark:text-indigo-400 font-bold border border-zinc-200 dark:border-zinc-700 shadow-sm">
                   Score: {finalResult?.score}%
                 </div>
-                <div className="px-3 py-1 bg-zinc-800 rounded-md text-zinc-300 border border-zinc-700">
+                <div className="px-3 py-1 bg-white dark:bg-zinc-800 rounded-lg text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 shadow-sm">
                   {userAnswers.filter(a => a.isCorrect).length}/{total} Correct
                 </div>
               </div>
@@ -299,15 +299,15 @@ export const AssessmentModal: React.FC = () => {
 
             {/* Strengths & Weaknesses */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 rounded-lg bg-zinc-950/60 border border-zinc-800/80">
-                <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold font-mono uppercase mb-2">
+              <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800/80">
+                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-bold font-mono uppercase mb-2">
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Identified Strengths</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {finalResult?.strengths.length ? (
                     finalResult.strengths.map((s, idx) => (
-                      <span key={idx} className="text-xs px-2 py-1 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono">
+                      <span key={idx} className="text-xs px-2 py-1 rounded font-mono bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/20">
                         {s}
                       </span>
                     ))
@@ -317,15 +317,15 @@ export const AssessmentModal: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-4 rounded-lg bg-zinc-950/60 border border-zinc-800/80">
-                <div className="flex items-center gap-2 text-amber-400 text-xs font-bold font-mono uppercase mb-2">
+              <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800/80">
+                <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 text-xs font-bold font-mono uppercase mb-2">
                   <Target className="w-4 h-4" />
                   <span>Target Growth Areas</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {finalResult?.weaknesses.length ? (
                     finalResult.weaknesses.map((w, idx) => (
-                      <span key={idx} className="text-xs px-2 py-1 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 font-mono">
+                      <span key={idx} className="text-xs px-2 py-1 rounded font-mono bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/20">
                         {w}
                       </span>
                     ))
@@ -337,15 +337,15 @@ export const AssessmentModal: React.FC = () => {
             </div>
 
             {/* Recommended Starting Point */}
-            <div className="p-4 rounded-lg bg-indigo-950/30 border border-indigo-800/40 space-y-2">
-              <div className="flex items-center gap-2 text-xs font-mono uppercase text-indigo-400 font-bold">
+            <div className="p-4 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/40 space-y-2">
+              <div className="flex items-center gap-2 text-xs font-mono uppercase text-indigo-700 dark:text-indigo-400 font-bold">
                 <Zap className="w-4 h-4" />
                 <span>Recommended Starting Point</span>
               </div>
-              <h4 className="text-sm font-semibold text-white">
+              <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">
                 {finalResult?.recommendedStartingTopicName}
               </h4>
-              <ul className="text-xs text-zinc-300 space-y-1 list-disc list-inside">
+              <ul className="text-xs text-zinc-600 dark:text-zinc-300 space-y-1 list-disc list-inside">
                 {finalResult?.recommendations.map((rec, i) => (
                   <li key={i}>{rec}</li>
                 ))}
@@ -353,11 +353,11 @@ export const AssessmentModal: React.FC = () => {
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
+            <div className="flex items-center justify-between pt-4 border-t border-zinc-200 dark:border-zinc-800">
               <button
                 onClick={handleRestart}
                 id="btn-restart-assessment"
-                className="flex items-center gap-1.5 px-3 py-2 text-xs text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800 transition-colors font-mono"
+                className="flex items-center gap-1.5 px-3 py-2 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors font-mono"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Retake Quiz</span>
@@ -365,7 +365,7 @@ export const AssessmentModal: React.FC = () => {
               <button
                 onClick={handleApplyCalibration}
                 id="btn-apply-calibration"
-                className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-mono shadow-md shadow-indigo-600/20 transition-colors border border-indigo-500/40"
+                className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-mono shadow-md shadow-indigo-600/20 transition-colors"
               >
                 <span>Apply Calibration & Start Track</span>
                 <ArrowRight className="w-4 h-4" />
