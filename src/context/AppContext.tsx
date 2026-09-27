@@ -1,8 +1,27 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { UserProfile, DsaLevel, TutorTone, AssessmentResult, PracticeMode, ProblemDifficulty } from '../types';
+import { 
+  UserProfile, 
+  DsaLevel, 
+  TutorTone, 
+  AssessmentResult, 
+  PracticeMode, 
+  ProblemDifficulty,
+  CoderArchetype,
+  FiveDayJourneyState,
+  JourneyBadge
+} from '../types';
+import { 
+  INITIAL_FIVE_DAY_JOURNEY, 
+  calculateArchetypeFromJourney 
+} from '../data/fiveDayJourneyData';
+import { 
+  FIVE_DAY_JOURNEY_BADGES, 
+  evaluateEarnedBadges 
+} from '../data/achievementBadgesData';
+import { handleFirestoreError, OperationType } from '../lib/firestoreErrors';
 import confetti from 'canvas-confetti';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 
 interface AppContextType {
@@ -33,17 +52,24 @@ interface AppContextType {
   updateTutorTone: (tone: TutorTone) => void;
   updatePreferredLanguage: (lang: 'javascript' | 'python' | 'cpp' | 'java') => void;
   setActiveTrack: (track: 'beginner' | 'intermediate' | 'pro') => void;
+  advanceJourneyDay: (dayNumber: number, score: number, notes?: string) => void;
+  setJourneyArchetype: (archetype: CoderArchetype) => void;
+  resetJourney: () => void;
   resetAllProgress: () => void;
+  syncAchievementsWithFirestore: () => Promise<JourneyBadge[]>;
   triggerConfetti: () => void;
 }
 
-const STORAGE_KEY = 'algomentor_user_profile_v2';
+const STORAGE_KEY = 'algomentor_user_profile_v3';
 const THEME_KEY = 'algomentor_theme_v2';
 
 const INITIAL_PROFILE: UserProfile = {
   id: '',
   name: 'DSA Explorer',
   level: 'intermediate',
+  coderArchetype: 'intermediate',
+  fiveDayJourney: INITIAL_FIVE_DAY_JOURNEY,
+  earnedBadges: evaluateEarnedBadges(INITIAL_FIVE_DAY_JOURNEY, [], 'intermediate'),
   preferredLanguage: 'javascript',
   activeTrack: 'intermediate',
   completedTopicIds: [],
@@ -63,13 +89,17 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     try {
-      // Purge any legacy demo profile from storage
       localStorage.removeItem('algomentor_user_profile_v1');
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && !parsed.id?.includes('demo')) {
-          return parsed;
+          return {
+            ...INITIAL_PROFILE,
+            ...parsed,
+            fiveDayJourney: parsed.fiveDayJourney || INITIAL_FIVE_DAY_JOURNEY,
+            coderArchetype: parsed.coderArchetype || 'intermediate'
+          };
         }
       }
     } catch (e) {
@@ -117,25 +147,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const unsubscribeDoc = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
+            const journeyState = data.fiveDayJourney || INITIAL_FIVE_DAY_JOURNEY;
+            const solvedProblemsList = Array.isArray(data.solvedProblems) ? data.solvedProblems : [];
+            const archetype = data.coderArchetype || 'intermediate';
+            const rawBadges = Array.isArray(data.earnedBadges) ? data.earnedBadges : [];
+            const evaluatedBadges = evaluateEarnedBadges(journeyState, solvedProblemsList, archetype, rawBadges);
+
             setUserProfile(prev => ({
               ...prev,
               id: firebaseUser.uid,
               name: data.displayName || firebaseUser.displayName || prev.name || 'DSA Explorer',
               level: data.skillLevel || prev.level || 'intermediate',
+              coderArchetype: archetype,
+              fiveDayJourney: journeyState,
+              earnedBadges: evaluatedBadges,
               preferredLanguage: data.preferredLanguage || prev.preferredLanguage || 'javascript',
               activeTrack: data.activeTrack || prev.activeTrack || 'intermediate',
               streakDays: typeof data.streakDays === 'number' ? data.streakDays : 1,
               completedTopicIds: Array.isArray(data.completedTopicIds) ? data.completedTopicIds : [],
-              solvedProblems: Array.isArray(data.solvedProblems) ? data.solvedProblems : [],
+              solvedProblems: solvedProblemsList,
               tutorTone: data.tutorTone || prev.tutorTone || 'balanced',
             }));
           } else {
             // First time login - set user document
+            const defaultBadges = evaluateEarnedBadges(INITIAL_FIVE_DAY_JOURNEY, [], 'intermediate');
             const initialDoc = {
               uid: firebaseUser.uid,
               displayName: firebaseUser.displayName || 'DSA Explorer',
               email: firebaseUser.email || '',
               skillLevel: 'intermediate',
+              coderArchetype: 'intermediate',
+              fiveDayJourney: INITIAL_FIVE_DAY_JOURNEY,
+              earnedBadges: defaultBadges,
               activeTrack: 'intermediate',
               preferredLanguage: 'javascript',
               streakDays: 1,
@@ -145,11 +188,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             };
-            setDoc(userDocRef, initialDoc, { merge: true }).catch(console.error);
+            setDoc(userDocRef, initialDoc, { merge: true }).catch(console.warn);
             setUserProfile(prev => ({
               ...prev,
               id: firebaseUser.uid,
               name: initialDoc.displayName,
+              coderArchetype: 'intermediate',
+              fiveDayJourney: INITIAL_FIVE_DAY_JOURNEY,
+              earnedBadges: defaultBadges,
               completedTopicIds: [],
               solvedProblems: [],
               streakDays: 1,
@@ -157,19 +203,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
         });
         return () => unsubscribeDoc();
-      } else {
-        // User logged out - reset profile
-        setUserProfile(INITIAL_PROFILE);
-        try {
-          localStorage.removeItem(STORAGE_KEY);
-        } catch {}
       }
     });
 
     return () => unsubscribeAuth();
   }, []);
 
-  // Sync profile to localStorage and Cloud Firestore when profile changes and user is signed in
+  // Sync profile to localStorage and Cloud Firestore when profile changes
   useEffect(() => {
     if (userProfile.id && !userProfile.id.includes('demo')) {
       try {
@@ -184,6 +224,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setDoc(userDocRef, {
         displayName: userProfile.name,
         skillLevel: userProfile.level,
+        coderArchetype: userProfile.coderArchetype || 'intermediate',
+        fiveDayJourney: userProfile.fiveDayJourney || INITIAL_FIVE_DAY_JOURNEY,
+        earnedBadges: userProfile.earnedBadges || [],
         preferredLanguage: userProfile.preferredLanguage,
         activeTrack: userProfile.activeTrack,
         streakDays: userProfile.streakDays,
@@ -207,7 +250,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         particleCount: 80,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#10b981', '#06b6d4', '#f59e0b', '#8b5cf6']
+        colors: ['#10b981', '#06b6d4', '#f59e0b', '#8b5cf6', '#ec4899']
       });
     } catch {}
   };
@@ -217,15 +260,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const saveAssessmentResult = (result: AssessmentResult) => {
-    setUserProfile(prev => ({
-      ...prev,
-      level: result.level,
-      activeTrack: result.level === 'newbie' ? 'beginner' : result.level === 'pro' ? 'pro' : 'intermediate',
-      assessmentResult: result,
-      weakTopics: result.weaknesses,
-      strongTopics: result.strengths,
-      currentTopicId: result.recommendedStartingTopicId || prev.currentTopicId,
-    }));
+    setUserProfile(prev => {
+      // Map diagnostic score to coder archetype
+      const assessedArchetype: CoderArchetype = 
+        result.level === 'pro' ? 'extraordinary' :
+        result.level === 'newbie' ? 'beginner' : 'intermediate';
+
+      return {
+        ...prev,
+        level: result.level,
+        coderArchetype: assessedArchetype,
+        activeTrack: result.level === 'newbie' ? 'beginner' : result.level === 'pro' ? 'pro' : 'intermediate',
+        assessmentResult: result,
+        weakTopics: result.weaknesses,
+        strongTopics: result.strengths,
+        currentTopicId: result.recommendedStartingTopicId || prev.currentTopicId,
+      };
+    });
     setIsAssessmentOpen(false);
     triggerConfetti();
   };
@@ -254,6 +305,85 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  const advanceJourneyDay = (dayNumber: number, score: number = 85, notes?: string) => {
+    setUserProfile(prev => {
+      const currentJourney = prev.fiveDayJourney || INITIAL_FIVE_DAY_JOURNEY;
+      const updatedDays = {
+        ...currentJourney.days,
+        [dayNumber]: {
+          completed: true,
+          score: Math.max(score, 70),
+          completedAt: new Date().toISOString(),
+          ...(notes ? { notes } : {})
+        }
+      };
+
+      const solvedCount = prev.solvedProblems.length;
+      const hardCount = prev.solvedProblems.filter(p => p.difficulty === 'hard').length;
+      const calibration = calculateArchetypeFromJourney(updatedDays, solvedCount, hardCount);
+
+      const nextDay = Math.min(5, Math.max(dayNumber + 1, currentJourney.currentDay));
+      const updatedJourneyState: FiveDayJourneyState = {
+        currentDay: nextDay,
+        assessedArchetype: calibration.archetype,
+        overallScore: calibration.overallScore,
+        days: updatedDays,
+        skills: calibration.skills,
+        summary: calibration.summary,
+      };
+
+      const updatedBadges = evaluateEarnedBadges(
+        updatedJourneyState,
+        prev.solvedProblems,
+        calibration.archetype,
+        prev.earnedBadges
+      );
+
+      triggerConfetti();
+
+      return {
+        ...prev,
+        coderArchetype: calibration.archetype,
+        level: calibration.archetype === 'extraordinary' ? 'pro' : calibration.archetype === 'beginner' ? 'newbie' : 'intermediate',
+        fiveDayJourney: updatedJourneyState,
+        earnedBadges: updatedBadges,
+      };
+    });
+  };
+
+  const setJourneyArchetype = (archetype: CoderArchetype) => {
+    setUserProfile(prev => {
+      const updatedJourney = {
+        ...(prev.fiveDayJourney || INITIAL_FIVE_DAY_JOURNEY),
+        assessedArchetype: archetype,
+        summary: `Manually calibrated starting profile as ${archetype.toUpperCase()} Coder.`
+      };
+      const updatedBadges = evaluateEarnedBadges(
+        updatedJourney,
+        prev.solvedProblems,
+        archetype,
+        prev.earnedBadges
+      );
+
+      return {
+        ...prev,
+        coderArchetype: archetype,
+        level: archetype === 'extraordinary' ? 'pro' : archetype === 'beginner' ? 'newbie' : 'intermediate',
+        fiveDayJourney: updatedJourney,
+        earnedBadges: updatedBadges,
+      };
+    });
+  };
+
+  const resetJourney = () => {
+    setUserProfile(prev => ({
+      ...prev,
+      coderArchetype: 'intermediate',
+      fiveDayJourney: INITIAL_FIVE_DAY_JOURNEY,
+      earnedBadges: evaluateEarnedBadges(INITIAL_FIVE_DAY_JOURNEY, prev.solvedProblems, 'intermediate', [])
+    }));
+  };
+
   const recordSolvedProblem = (
     problemId: string,
     problemTitle: string,
@@ -274,15 +404,94 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         mode,
       };
 
+      const updatedSolved = alreadySolved
+        ? prev.solvedProblems.map(p => (p.problemId === problemId ? newRecord : p))
+        : [newRecord, ...prev.solvedProblems];
+
+      // Check if this problem corresponds to one of the 5-day journey milestones
+      const dayProblemMap: Record<string, number> = {
+        'two-sum': 1,
+        'container-with-most-water': 2,
+        'search-in-rotated-sorted-array': 3,
+        'number-of-islands': 4,
+        'coin-change': 5,
+      };
+
+      const matchedDay = dayProblemMap[problemId];
+      let updatedJourney = prev.fiveDayJourney || INITIAL_FIVE_DAY_JOURNEY;
+      let newArchetype = prev.coderArchetype || 'intermediate';
+
+      if (matchedDay) {
+        const updatedDays = {
+          ...updatedJourney.days,
+          [matchedDay]: {
+            completed: true,
+            score: 90,
+            completedAt: new Date().toISOString()
+          }
+        };
+        const hardCount = updatedSolved.filter(p => p.difficulty === 'hard').length;
+        const calibration = calculateArchetypeFromJourney(updatedDays, updatedSolved.length, hardCount);
+        newArchetype = calibration.archetype;
+        updatedJourney = {
+          currentDay: Math.min(5, Math.max(matchedDay + 1, updatedJourney.currentDay)),
+          assessedArchetype: calibration.archetype,
+          overallScore: calibration.overallScore,
+          days: updatedDays,
+          skills: calibration.skills,
+          summary: calibration.summary
+        };
+      }
+
+      const updatedBadges = evaluateEarnedBadges(
+        updatedJourney,
+        updatedSolved,
+        newArchetype,
+        prev.earnedBadges
+      );
+
       triggerConfetti();
 
       return {
         ...prev,
-        solvedProblems: alreadySolved
-          ? prev.solvedProblems.map(p => (p.problemId === problemId ? newRecord : p))
-          : [newRecord, ...prev.solvedProblems],
+        coderArchetype: newArchetype,
+        fiveDayJourney: updatedJourney,
+        earnedBadges: updatedBadges,
+        solvedProblems: updatedSolved,
       };
     });
+  };
+
+  const syncAchievementsWithFirestore = async (): Promise<JourneyBadge[]> => {
+    const updatedBadges = evaluateEarnedBadges(
+      userProfile.fiveDayJourney,
+      userProfile.solvedProblems,
+      userProfile.coderArchetype,
+      userProfile.earnedBadges
+    );
+
+    setUserProfile(prev => ({
+      ...prev,
+      earnedBadges: updatedBadges
+    }));
+
+    if (auth.currentUser) {
+      const userPath = `users/${auth.currentUser.uid}`;
+      try {
+        const userDocRef = doc(db, 'users', auth.currentUser.uid);
+        await setDoc(userDocRef, {
+          earnedBadges: updatedBadges,
+          coderArchetype: userProfile.coderArchetype || 'intermediate',
+          fiveDayJourney: userProfile.fiveDayJourney || INITIAL_FIVE_DAY_JOURNEY,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      } catch (error) {
+        handleFirestoreError(error, OperationType.WRITE, userPath);
+      }
+    }
+
+    triggerConfetti();
+    return updatedBadges;
   };
 
   const updateTutorTone = (tone: TutorTone) => {
@@ -298,11 +507,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const resetAllProgress = () => {
-    if (!auth.currentUser) return;
     const fresh: UserProfile = {
-      id: auth.currentUser.uid,
-      name: auth.currentUser.displayName || 'DSA Explorer',
+      id: auth.currentUser?.uid || userProfile.id || 'dev_user',
+      name: auth.currentUser?.displayName || userProfile.name || 'DSA Explorer',
       level: 'intermediate',
+      coderArchetype: 'intermediate',
+      fiveDayJourney: INITIAL_FIVE_DAY_JOURNEY,
       preferredLanguage: 'javascript',
       activeTrack: 'intermediate',
       completedTopicIds: [],
@@ -317,13 +527,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       dailyGoalProblems: 2,
     };
     setUserProfile(fresh);
-    const userDocRef = doc(db, 'users', auth.currentUser.uid);
-    setDoc(userDocRef, {
-      completedTopicIds: [],
-      solvedProblems: [],
-      streakDays: 1,
-      updatedAt: new Date().toISOString(),
-    }, { merge: true }).catch(console.error);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {}
+
+    if (auth.currentUser) {
+      const userDocRef = doc(db, 'users', auth.currentUser.uid);
+      setDoc(userDocRef, {
+        completedTopicIds: [],
+        solvedProblems: [],
+        fiveDayJourney: INITIAL_FIVE_DAY_JOURNEY,
+        coderArchetype: 'intermediate',
+        streakDays: 1,
+        updatedAt: new Date().toISOString(),
+      }, { merge: true }).catch(console.warn);
+    }
   };
 
   return (
@@ -349,7 +567,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateTutorTone,
         updatePreferredLanguage,
         setActiveTrack,
+        advanceJourneyDay,
+        setJourneyArchetype,
+        resetJourney,
         resetAllProgress,
+        syncAchievementsWithFirestore,
         triggerConfetti,
       }}
     >

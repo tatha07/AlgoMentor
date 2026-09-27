@@ -15,6 +15,7 @@
         "solvedProblemIds": { "type": "array", "description": "List of solved practice problem IDs" },
         "totalPracticeTimeSeconds": { "type": "number", "description": "Total time spent practicing in seconds" },
         "tutorTone": { "type": "string", "description": "AI Tutor tone: socratic | direct | encouraging" },
+        "earnedBadges": { "type": "array", "description": "List of journey achievement badges earned by completing modules" },
         "createdAt": { "type": "string", "description": "ISO timestamp of account creation" },
         "updatedAt": { "type": "string", "description": "ISO timestamp of last update" }
       }

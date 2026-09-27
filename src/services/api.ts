@@ -27,6 +27,7 @@ export async function getProgressiveHint(params: {
   problemDescription?: string;
   userCode?: string;
   hintLevel: number;
+  tone?: string;
 }): Promise<string> {
   const res = await fetch('/api/tutor/hint', {
     method: 'POST',
@@ -68,6 +69,9 @@ export async function evaluateSolution(params: {
   problemDescription: string;
   userCode: string;
   language?: string;
+  timeComplexityExpected?: string;
+  spaceComplexityExpected?: string;
+  tone?: string;
 }): Promise<string> {
   const res = await fetch('/api/tutor/evaluate-solution', {
     method: 'POST',
@@ -87,7 +91,10 @@ export async function evaluateSolution(params: {
 export async function sendInterviewTurn(params: {
   problemTitle: string;
   problemDifficulty?: string;
+  problemDescription?: string;
   conversation: { role: string; content: string }[];
+  candidateCode?: string;
+  language?: string;
   userLevel?: string;
 }): Promise<string> {
   const res = await fetch('/api/tutor/interview', {

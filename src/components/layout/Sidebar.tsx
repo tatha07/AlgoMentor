@@ -2,6 +2,8 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   LayoutDashboard, 
+  Compass,
+  Trophy,
   Bot, 
   GraduationCap, 
   Code2, 
@@ -16,8 +18,12 @@ import {
 export const Sidebar: React.FC = () => {
   const { activeTab, setActiveTab, userProfile } = useApp();
 
+  const unlockedBadgesCount = userProfile.earnedBadges?.filter(b => b.unlocked).length || 0;
+
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, badge: null },
+    { id: 'journey', label: '5-Day Journey', icon: Compass, badge: userProfile.coderArchetype || 'Calibrate' },
+    { id: 'achievements', label: 'Achievements', icon: Trophy, badge: `${unlockedBadgesCount} Badges` },
     { id: 'chat', label: 'AI DSA Tutor', icon: Bot, badge: 'Savage AI' },
     { id: 'tracks', label: 'Learning Tracks', icon: GraduationCap, badge: `${userProfile.activeTrack}` },
     { id: 'practice', label: 'Practice Arena', icon: Code2, badge: 'Monaco' },

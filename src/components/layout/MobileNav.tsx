@@ -2,6 +2,8 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   LayoutDashboard, 
+  Compass,
+  Trophy,
   Bot, 
   GraduationCap, 
   Code2, 
@@ -14,11 +16,11 @@ export const MobileNav: React.FC = () => {
 
   const mobileTabs = [
     { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
+    { id: 'journey', label: '5-Day', icon: Compass },
+    { id: 'achievements', label: 'Badges', icon: Trophy },
+    { id: 'practice', label: 'Practice', icon: Code2 },
     { id: 'chat', label: 'Tutor', icon: Bot },
     { id: 'tracks', label: 'Tracks', icon: GraduationCap },
-    { id: 'practice', label: 'Practice', icon: Code2 },
-    { id: 'interview', label: 'Mock', icon: Users },
-    { id: 'code-explainer', label: 'Explain', icon: FileCode2 },
   ];
 
   return (

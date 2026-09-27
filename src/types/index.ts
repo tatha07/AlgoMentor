@@ -2,6 +2,43 @@ export type DsaLevel = 'newbie' | 'intermediate' | 'pro';
 
 export type TrackLevel = 'beginner' | 'intermediate' | 'pro';
 
+export type CoderArchetype = 'beginner' | 'intermediate' | 'extraordinary';
+
+export interface FiveDayDayData {
+  day: number;
+  title: string;
+  theme: string;
+  objective: string;
+  keyConcepts: string[];
+  recommendedProblemId: string;
+  recommendedProblemTitle: string;
+  difficulty: ProblemDifficulty;
+  archetypeFocus: CoderArchetype;
+  completed: boolean;
+  score: number; // 0 to 100
+  notes?: string;
+  completedAt?: string;
+}
+
+export interface FiveDayJourneyState {
+  currentDay: number;
+  assessedArchetype: CoderArchetype;
+  overallScore: number;
+  days: Record<number, {
+    completed: boolean;
+    score: number;
+    completedAt?: string;
+  }>;
+  skills: {
+    algorithmicThinking: number;
+    bigOOptimization: number;
+    dataStructures: number;
+    edgeCaseMastery: number;
+    problemVelocity: number;
+  };
+  summary: string;
+}
+
 export type TutorTone = 'balanced' | 'savage' | 'socratic' | 'friendly';
 
 export type PracticeMode = 'solve' | 'hint' | 'explain' | 'interview' | 'timed';
@@ -38,6 +75,7 @@ export interface DsaTopic {
   category: string;
   trackLevel: 'beginner' | 'intermediate' | 'pro';
   order: number;
+  estimatedHours?: number;
   description: string;
   prerequisites: string[];
   concept: string;
@@ -138,10 +176,30 @@ export interface SolvedProblemRecord {
   mode: PracticeMode;
 }
 
+export interface JourneyBadge {
+  id: string;
+  moduleId: number; // 1 to 5 for days 1-5, or 0 for overall / archetype
+  title: string;
+  name: string;
+  description: string;
+  category: 'module' | 'archetype' | 'mastery';
+  icon: string;
+  tier: 'bronze' | 'silver' | 'gold' | 'diamond';
+  unlocked: boolean;
+  unlockedAt?: string;
+  criteria: string;
+  moduleName?: string;
+  rarity?: string;
+  skillsGained: string[];
+}
+
 export interface UserProfile {
   id: string;
   name: string;
   level: DsaLevel;
+  coderArchetype?: CoderArchetype;
+  fiveDayJourney?: FiveDayJourneyState;
+  earnedBadges?: JourneyBadge[];
   preferredLanguage: 'javascript' | 'python' | 'cpp' | 'java';
   activeTrack: 'beginner' | 'intermediate' | 'pro';
   completedTopicIds: string[];

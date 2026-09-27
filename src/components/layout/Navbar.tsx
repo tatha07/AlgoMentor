@@ -15,15 +15,17 @@ export const Navbar: React.FC = () => {
     userProfile, 
     theme, 
     toggleTheme, 
-    startAssessment, 
+    startAssessment,
+    setActiveTab, 
   } = useApp();
 
-  const levelColor = 
-    userProfile.level === 'pro' 
-      ? 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-500/10 dark:text-violet-400 dark:border-violet-500/30' 
-      : userProfile.level === 'intermediate'
-      ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/30'
-      : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30';
+  const archetype = userProfile.coderArchetype || 'intermediate';
+  const archetypeColor = 
+    archetype === 'extraordinary' 
+      ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/30' 
+      : archetype === 'beginner'
+      ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30'
+      : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/30';
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 md:px-6 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 transition-colors duration-200">
@@ -55,11 +57,16 @@ export const Navbar: React.FC = () => {
           <span>{userProfile.streakDays}d Streak</span>
         </div>
 
-        {/* Level Badge */}
-        <div className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono font-semibold uppercase tracking-wider border rounded-lg ${levelColor}`}>
+        {/* Coder Archetype Badge */}
+        <button
+          onClick={() => setActiveTab('journey')}
+          id="btn-nav-archetype"
+          title="Click to view your 5-Day Coding Journey & Archetype breakdown"
+          className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono font-semibold uppercase tracking-wider border rounded-lg hover:opacity-90 transition-opacity cursor-pointer ${archetypeColor}`}
+        >
           <Zap className="w-3.5 h-3.5" />
-          <span>{userProfile.level}</span>
-        </div>
+          <span>{archetype} Coder</span>
+        </button>
 
         {/* Diagnostic Assessment Button */}
         <button

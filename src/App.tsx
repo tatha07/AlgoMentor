@@ -16,6 +16,8 @@ import { ResourcesView } from './components/resources/ResourcesView';
 import { AssessmentModal } from './components/assessment/AssessmentModal';
 import { AuthModal } from './components/auth/AuthModal';
 import { AuthGateView } from './components/auth/AuthGateView';
+import { FiveDayJourneyView } from './components/journey/FiveDayJourneyView';
+import { AchievementView } from './components/achievements/AchievementView';
 import { Cpu } from 'lucide-react';
 
 const AppContent: React.FC = () => {
@@ -52,6 +54,10 @@ const AppContent: React.FC = () => {
     switch (activeTab) {
       case 'dashboard':
         return <DashboardView />;
+      case 'journey':
+        return <FiveDayJourneyView />;
+      case 'achievements':
+        return <AchievementView />;
       case 'chat':
         return <AiChatView />;
       case 'tracks':

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { DSA_TOPICS } from '../../data/dsaTopics';
+import { ARCHETYPE_PROFILES, FIVE_DAY_CURRICULUM } from '../../data/fiveDayJourneyData';
 import { 
   Flame, 
   Sparkles, 
@@ -15,7 +16,11 @@ import {
   Award, 
   Clock, 
   TrendingUp, 
-  ShieldAlert 
+  ShieldAlert,
+  Compass,
+  Crown,
+  Trophy,
+  Lock
 } from 'lucide-react';
 
 export const DashboardView: React.FC = () => {
@@ -26,6 +31,13 @@ export const DashboardView: React.FC = () => {
     setSelectedProblemId, 
     startAssessment 
   } = useApp();
+
+  const currentArchetype = userProfile.coderArchetype || 'intermediate';
+  const archetypeInfo = ARCHETYPE_PROFILES[currentArchetype];
+  const journey = userProfile.fiveDayJourney;
+  const currentDay = journey?.currentDay || 1;
+  const currentDayData = FIVE_DAY_CURRICULUM.find(d => d.day === currentDay) || FIVE_DAY_CURRICULUM[0];
+  const completedDaysCount = Object.values(journey?.days || {}).filter(d => d.completed).length;
 
   const totalTopics = DSA_TOPICS.length;
   const completedTopicsCount = userProfile.completedTopicIds.length;
@@ -57,8 +69,8 @@ export const DashboardView: React.FC = () => {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono uppercase tracking-wider text-indigo-700 dark:text-indigo-400 font-semibold px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20">
-                {userProfile.level} Track
+              <span className={`text-xs font-mono uppercase tracking-wider font-semibold px-2.5 py-0.5 rounded border ${archetypeInfo.badgeColor}`}>
+                {archetypeInfo.title}
               </span>
               <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
                 Tone: {userProfile.tutorTone === 'savage' ? '🌶️ Savage Senior Dev' : 'Balanced Senior Dev'}
@@ -73,14 +85,22 @@ export const DashboardView: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setActiveTab('journey')}
+              id="btn-dash-open-journey"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-mono text-xs font-bold shadow-md shadow-indigo-500/20 hover:opacity-95 transition-opacity"
+            >
+              <Compass className="w-4 h-4 text-indigo-200" />
+              <span>5-Day Journey</span>
+            </button>
             {!userProfile.assessmentResult && (
               <button
                 onClick={startAssessment}
                 id="btn-dash-assessment"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-mono text-xs font-bold shadow-md shadow-indigo-500/20 hover:opacity-95 transition-opacity"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-zinc-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-800 dark:text-white font-mono text-xs font-semibold border border-zinc-200 dark:border-zinc-800 transition-colors shadow-sm"
               >
-                <Sparkles className="w-4 h-4 text-indigo-200" />
-                <span>Take Diagnostic Test</span>
+                <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <span>Quiz</span>
               </button>
             )}
             <button
@@ -90,6 +110,116 @@ export const DashboardView: React.FC = () => {
             >
               <Bot className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>Ask Senior Dev</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 5-Day Coder Journey Calibration Widget */}
+      <div className="p-5 md:p-6 rounded-2xl bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 shadow-sm relative overflow-hidden">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono uppercase font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                <Compass className="w-3.5 h-3.5" />
+                5-Day Journey Archetype Calibration
+              </span>
+              <span className="text-xs text-zinc-400 font-mono">• Day {currentDay} active</span>
+            </div>
+            <h2 className="text-lg font-bold font-mono text-zinc-900 dark:text-white flex items-center gap-2">
+              <span>Current Archetype:</span>
+              <span className={`bg-gradient-to-r ${archetypeInfo.gradient} bg-clip-text text-transparent`}>
+                {archetypeInfo.title}
+              </span>
+              <span className="text-xs text-zinc-400 font-normal">({journey?.overallScore || 50}/100)</span>
+            </h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-xl">
+              {archetypeInfo.tagline}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-1.5 text-xs font-mono text-zinc-500">
+              <span>{completedDaysCount}/5 Days Verified</span>
+            </div>
+            <button
+              onClick={() => setActiveTab('journey')}
+              id="btn-dash-jump-journey"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-mono text-xs font-semibold border border-indigo-200 dark:border-indigo-500/30 transition-colors"
+            >
+              <span>Explore 5-Day Curriculum</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* 5-Day Progress Bar */}
+        <div className="grid grid-cols-5 gap-2 mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800/80">
+          {FIVE_DAY_CURRICULUM.map(d => {
+            const isDone = !!journey?.days[d.day]?.completed;
+            const isCurrent = currentDay === d.day;
+            return (
+              <button
+                key={d.day}
+                onClick={() => setActiveTab('journey')}
+                className={`p-2 rounded-lg text-left transition-all border ${
+                  isDone
+                    ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
+                    : isCurrent
+                    ? 'bg-indigo-50/50 dark:bg-indigo-950/20 border-indigo-300 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300'
+                    : 'bg-zinc-50 dark:bg-zinc-950/40 border-zinc-200 dark:border-zinc-800 text-zinc-500'
+                }`}
+              >
+                <div className="text-[10px] font-mono font-bold flex items-center justify-between">
+                  <span>Day {d.day}</span>
+                  {isDone && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
+                </div>
+                <div className="text-[10px] truncate mt-0.5">{d.theme.split('&')[0]}</div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 5-Day Badges Quick Showcase */}
+        <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+              <Trophy className="w-3.5 h-3.5 text-amber-500" />
+              Module Achievement Badges:
+            </span>
+            <span className="text-[11px] font-mono text-zinc-500">
+              {userProfile.earnedBadges?.filter(b => b.unlocked).length || 0} / {userProfile.earnedBadges?.length || 9} Unlocked
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex items-center -space-x-1.5 overflow-hidden">
+              {userProfile.earnedBadges?.map(b => (
+                <div
+                  key={b.id}
+                  title={`${b.title} (${b.unlocked ? 'Unlocked' : 'Locked'})`}
+                  className={`w-7 h-7 rounded-full border-2 border-white dark:border-zinc-900 flex items-center justify-center text-[10px] font-bold shadow-xs ${
+                    b.unlocked
+                      ? b.tier === 'diamond'
+                        ? 'bg-purple-500 text-white'
+                        : b.tier === 'gold'
+                        ? 'bg-amber-500 text-white'
+                        : b.tier === 'silver'
+                        ? 'bg-indigo-500 text-white'
+                        : 'bg-emerald-500 text-white'
+                      : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400'
+                  }`}
+                >
+                  {b.unlocked ? <Award className="w-3.5 h-3.5" /> : <Lock className="w-3 h-3" />}
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => setActiveTab('achievements')}
+              id="btn-dash-view-all-badges"
+              className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 hover:underline ml-1 cursor-pointer"
+            >
+              View Badges →
             </button>
           </div>
         </div>

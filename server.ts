@@ -53,7 +53,7 @@ function sleep(ms: number) {
  */
 async function generateContentWithRetry(
   ai: GoogleGenAI,
-  paramsWithoutModel: Record<string, any>,
+  paramsWithoutModel: { contents: any; config?: any; [key: string]: any },
   options: { retriesPerModel?: number; baseDelayMs?: number } = {}
 ) {
   const { retriesPerModel = 2, baseDelayMs = 800 } = options;

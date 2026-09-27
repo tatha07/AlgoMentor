@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
+import { CoderArchetype } from '../../types';
 import { 
   Cpu, 
   Mail, 
@@ -11,13 +12,13 @@ import {
   CheckCircle2, 
   Sparkles, 
   Code2, 
-  Radio, 
-  Users, 
-  Flame, 
   Sun, 
   Moon,
-  ShieldCheck,
-  Zap
+  Zap,
+  Target,
+  Crown,
+  Compass,
+  Check
 } from 'lucide-react';
 
 export const AuthGateView: React.FC = () => {
@@ -30,12 +31,13 @@ export const AuthGateView: React.FC = () => {
     clearAuthError 
   } = useAuth();
   
-  const { theme, toggleTheme } = useApp();
+  const { theme, toggleTheme, setJourneyArchetype } = useApp();
 
   const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [selectedInitialArchetype, setSelectedInitialArchetype] = useState<CoderArchetype>('intermediate');
   const [isLoading, setIsLoading] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
 
@@ -50,12 +52,13 @@ export const AuthGateView: React.FC = () => {
         await signInWithEmail(email, password);
       } else if (mode === 'signup') {
         await signUpWithEmail(email, password, name);
+        setJourneyArchetype(selectedInitialArchetype);
       } else if (mode === 'reset') {
         await resetPassword(email);
         setResetSuccess(true);
       }
     } catch {
-      // Error message is set in AuthContext
+      // Error is set in AuthContext
     } finally {
       setIsLoading(false);
     }
@@ -66,6 +69,7 @@ export const AuthGateView: React.FC = () => {
     clearAuthError();
     try {
       await signInWithGoogle();
+      setJourneyArchetype(selectedInitialArchetype);
     } catch {
       // Error is set in AuthContext
     } finally {
@@ -116,73 +120,114 @@ export const AuthGateView: React.FC = () => {
 
       {/* Hero & Auth Card Section */}
       <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
-        <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
-          {/* Left Hero Column (7 Cols on desktop) */}
+          {/* Left Hero Column: 5-Day Journey & Archetype Presentation */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-mono font-medium">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-              <span>Personalized DSA Learning & Cloud Sync</span>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-mono font-semibold">
+              <Compass className="w-4 h-4 text-indigo-500" />
+              <span>5-Day Coding Journey Calibration</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-zinc-900 dark:text-white leading-[1.15]">
-              Master Algorithms with an <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">AI Instructor</span> & Real-Time Arena.
+              Discover What Type of Coder You Are in a{' '}
+              <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-amber-500 bg-clip-text text-transparent">
+                5-Day Journey
+              </span>.
             </h1>
 
-            <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-xl">
-              Sign in to track your learning journey, execute code across 4 programming languages in an interactive Monaco editor, solve problems in live peer study rooms, and ace technical interviews.
+            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-xl">
+              Sign in to begin your 5-day assessment. AlgoMentor measures your problem-solving velocity, invariant recognition, and Big-O optimality to identify your archetype:
             </p>
 
-            {/* Feature Pills */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-                  <Code2 className="w-4 h-4" />
+            {/* The 3 Coder Archetypes Showcase */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+              {/* Archetype 1: Beginner */}
+              <div className="p-3.5 rounded-xl bg-white dark:bg-zinc-900/90 border border-emerald-200 dark:border-emerald-500/30 shadow-sm relative overflow-hidden">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
+                    Day 1-2 Focus
+                  </span>
+                  <Zap className="w-4 h-4 text-emerald-500" />
                 </div>
-                <div>
-                  <div className="text-xs font-bold font-mono text-zinc-900 dark:text-white">Monaco Code Editor</div>
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400">JS, Python, C++, Java execution</div>
+                <div className="text-xs font-bold font-mono text-zinc-900 dark:text-white">
+                  Beginner Coder
                 </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                  <Flame className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold font-mono text-zinc-900 dark:text-white">Daily Streak & Progress</div>
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400">Cloud-synced to your account</div>
+                <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
+                  Mastering linear scans, syntax mechanics, and single-pass hash lookups.
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                <div className="p-2 rounded-lg bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400">
-                  <Radio className="w-4 h-4" />
+              {/* Archetype 2: Intermediate */}
+              <div className="p-3.5 rounded-xl bg-white dark:bg-zinc-900/90 border border-indigo-200 dark:border-indigo-500/30 shadow-sm relative overflow-hidden">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30">
+                    Day 3-4 Focus
+                  </span>
+                  <Target className="w-4 h-4 text-indigo-500" />
                 </div>
-                <div>
-                  <div className="text-xs font-bold font-mono text-zinc-900 dark:text-white">Live Study Rooms</div>
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400">WebSocket peer collaboration</div>
+                <div className="text-xs font-bold font-mono text-zinc-900 dark:text-white">
+                  Intermediate Coder
+                </div>
+                <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
+                  Proficient in Two Pointers, Binary Search, Trees, and BFS/DFS graphs.
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 shadow-sm">
-                <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                  <ShieldCheck className="w-4 h-4" />
+              {/* Archetype 3: Extraordinary */}
+              <div className="p-3.5 rounded-xl bg-white dark:bg-zinc-900/90 border border-amber-200 dark:border-amber-500/30 shadow-sm relative overflow-hidden">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30">
+                    Day 5 Mastery
+                  </span>
+                  <Crown className="w-4 h-4 text-amber-500" />
                 </div>
-                <div>
-                  <div className="text-xs font-bold font-mono text-zinc-900 dark:text-white">Mock DSA Interviews</div>
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400">Timed challenges & rubrics</div>
+                <div className="text-xs font-bold font-mono text-zinc-900 dark:text-white">
+                  Extraordinary Coder
+                </div>
+                <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
+                  Conquering Dynamic Programming, sub-millisecond Big-O, and Hard FAANG problems.
+                </div>
+              </div>
+            </div>
+
+            {/* 5-Day Curriculum Micro-Roadmap */}
+            <div className="p-4 rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 text-xs font-mono space-y-2">
+              <div className="text-zinc-500 dark:text-zinc-400 font-semibold uppercase text-[11px] flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                <span>How Your 5-Day Evaluation Works:</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 text-[11px]">
+                <div className="p-2 rounded bg-white dark:bg-zinc-950/80 border border-zinc-200 dark:border-zinc-800">
+                  <div className="text-indigo-600 dark:text-indigo-400 font-bold">Day 1</div>
+                  <div className="text-zinc-500 dark:text-zinc-400 text-[10px]">Complexity & Hashing</div>
+                </div>
+                <div className="p-2 rounded bg-white dark:bg-zinc-950/80 border border-zinc-200 dark:border-zinc-800">
+                  <div className="text-indigo-600 dark:text-indigo-400 font-bold">Day 2</div>
+                  <div className="text-zinc-500 dark:text-zinc-400 text-[10px]">Two Pointers</div>
+                </div>
+                <div className="p-2 rounded bg-white dark:bg-zinc-950/80 border border-zinc-200 dark:border-zinc-800">
+                  <div className="text-indigo-600 dark:text-indigo-400 font-bold">Day 3</div>
+                  <div className="text-zinc-500 dark:text-zinc-400 text-[10px]">Binary Search & Trees</div>
+                </div>
+                <div className="p-2 rounded bg-white dark:bg-zinc-950/80 border border-zinc-200 dark:border-zinc-800">
+                  <div className="text-indigo-600 dark:text-indigo-400 font-bold">Day 4</div>
+                  <div className="text-zinc-500 dark:text-zinc-400 text-[10px]">Graphs & BFS/DFS</div>
+                </div>
+                <div className="p-2 rounded bg-white dark:bg-zinc-950/80 border border-zinc-200 dark:border-zinc-800">
+                  <div className="text-indigo-600 dark:text-indigo-400 font-bold">Day 5</div>
+                  <div className="text-zinc-500 dark:text-zinc-400 text-[10px]">Dynamic Programming</div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right Column: Authentication Card (5 Cols on desktop) */}
+          {/* Right Column: Authentication & Instant Access Card */}
           <div className="lg:col-span-5">
             <div className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl p-6 sm:p-8">
               
               {/* Tab Selector */}
-              <div className="flex p-1 bg-zinc-100 dark:bg-zinc-950 rounded-xl mb-6 border border-zinc-200 dark:border-zinc-800">
+              <div className="flex p-1 bg-zinc-100 dark:bg-zinc-950 rounded-xl mb-5 border border-zinc-200 dark:border-zinc-800">
                 <button
                   type="button"
                   id="tab-auth-signin"
@@ -218,15 +263,15 @@ export const AuthGateView: React.FC = () => {
               </div>
 
               {/* Title & Prompt */}
-              <div className="mb-5">
+              <div className="mb-4">
                 <h2 className="text-xl font-bold font-mono text-zinc-900 dark:text-white">
-                  {mode === 'signin' && 'Welcome Back'}
-                  {mode === 'signup' && 'Start Your DSA Journey'}
+                  {mode === 'signin' && 'Sign In to Your Workspace'}
+                  {mode === 'signup' && 'Create Account & Begin 5-Day Journey'}
                   {mode === 'reset' && 'Reset Account Password'}
                 </h2>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                  {mode === 'signin' && 'Sign in to access your personal dashboard and tracked progress.'}
-                  {mode === 'signup' && 'Create your account to sync practice logs and active streaks.'}
+                  {mode === 'signin' && 'Access your tracked progress, daily journey, and practice records.'}
+                  {mode === 'signup' && 'Calibrate your starting coder profile and sync your 5-day challenge.'}
                   {mode === 'reset' && 'Enter your email to receive recovery instructions.'}
                 </p>
               </div>
@@ -278,21 +323,21 @@ export const AuthGateView: React.FC = () => {
                     <span>Continue with Google</span>
                   </button>
 
-                  <div className="relative flex items-center justify-center my-4">
+                  <div className="relative flex items-center justify-center my-3.5">
                     <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
-                    <span className="bg-white dark:bg-zinc-900 px-3 text-[11px] text-zinc-400 font-mono uppercase">
-                      Or with email
+                    <span className="bg-white dark:bg-zinc-900 px-3 text-[10px] text-zinc-400 font-mono uppercase">
+                      Or with email & password
                     </span>
                   </div>
                 </>
               )}
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-3.5">
                 {mode === 'signup' && (
                   <div>
-                    <label className="block text-xs font-mono font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
-                      Your Name or Handle
+                    <label className="block text-xs font-mono font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                      Coder Name / Handle
                     </label>
                     <div className="relative">
                       <User className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -301,15 +346,15 @@ export const AuthGateView: React.FC = () => {
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="e.g. AlgoExplorer"
-                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono"
+                        placeholder="e.g. AlgoArchitect"
+                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono"
                       />
                     </div>
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-xs font-mono font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
+                  <label className="block text-xs font-mono font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                     Email Address
                   </label>
                   <div className="relative">
@@ -320,14 +365,14 @@ export const AuthGateView: React.FC = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono"
+                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono"
                     />
                   </div>
                 </div>
 
                 {mode !== 'reset' && (
                   <div>
-                    <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center justify-between mb-1">
                       <label className="text-xs font-mono font-medium text-zinc-700 dark:text-zinc-300">
                         Password
                       </label>
@@ -353,8 +398,33 @@ export const AuthGateView: React.FC = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono"
+                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono"
                       />
+                    </div>
+                  </div>
+                )}
+
+                {/* Initial Archetype Calibration Selection on Sign Up */}
+                {mode === 'signup' && (
+                  <div>
+                    <label className="block text-xs font-mono font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
+                      Your Initial Self-Identified Level:
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(['beginner', 'intermediate', 'extraordinary'] as CoderArchetype[]).map(arch => (
+                        <button
+                          type="button"
+                          key={arch}
+                          onClick={() => setSelectedInitialArchetype(arch)}
+                          className={`py-1.5 px-2 rounded-lg text-[10px] font-mono font-semibold border transition-all capitalize ${
+                            selectedInitialArchetype === arch
+                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                              : 'bg-zinc-50 dark:bg-zinc-950 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300'
+                          }`}
+                        >
+                          {arch}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -363,15 +433,15 @@ export const AuthGateView: React.FC = () => {
                   type="submit"
                   id="btn-gate-submit"
                   disabled={isLoading}
-                  className="w-full mt-2 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-bold transition-all shadow-md shadow-indigo-600/25 flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full mt-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-bold transition-all shadow-md shadow-indigo-600/25 flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isLoading ? (
-                    <span>Processing...</span>
+                    <span>Authenticating...</span>
                   ) : (
                     <>
                       <span>
                         {mode === 'signin' && 'Sign In to Workspace'}
-                        {mode === 'signup' && 'Create Free Account'}
+                        {mode === 'signup' && 'Create Account & Start Journey'}
                         {mode === 'reset' && 'Send Password Reset Link'}
                       </span>
                       <ArrowRight className="w-4 h-4" />
@@ -381,7 +451,7 @@ export const AuthGateView: React.FC = () => {
               </form>
 
               {/* Mode switch helper link */}
-              <div className="mt-5 pt-4 border-t border-zinc-200 dark:border-zinc-800 text-center text-xs text-zinc-500 dark:text-zinc-400">
+              <div className="mt-4 pt-3 border-t border-zinc-200 dark:border-zinc-800 text-center text-xs text-zinc-500 dark:text-zinc-400">
                 {mode === 'signin' && (
                   <p>
                     Don't have an account yet?{' '}
@@ -435,7 +505,7 @@ export const AuthGateView: React.FC = () => {
 
       {/* Footer */}
       <footer className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 border-t border-zinc-200 dark:border-zinc-800 text-center text-xs text-zinc-500 dark:text-zinc-400 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <p>© AlgoMentor • AI Data Structures & Algorithms Training System</p>
+        <p>© AlgoMentor • 5-Day Coding Archetype Identification & DSA Studio</p>
         <p className="font-mono text-[11px]">Powered by Gemini 2.5 & Google Firebase</p>
       </footer>
     </div>
