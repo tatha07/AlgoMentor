@@ -40,8 +40,9 @@ Single monolithic repo. Frontend (React 19 + Vite + Tailwind CSS) and backend (E
 **Important backend quirks:**
 - Collab rooms are **in-memory** (`Map<string, CollabRoom>`). Prepopulated with 2 demo rooms. Lost on restart.
 - Non-JS code execution (Python, C++, Java) is **simulated by Gemini**, not compiled.
-- Gemini model: `gemini-3.7-flash`. User-Agent header is hardcoded to `aistudio-build`.
+- Gemini model: `gemini-3.7-flash` with fallback to `gemini-3.6-flash` on 503/429. Auto-retries per model (2 retries, exponential backoff). User-Agent is hardcoded to `aistudio-build`.
 - Sandboxed JS execution has a 2500ms timeout and exposes only a whitelist of globals (no `require`, `fetch`, `process`, etc.).
+- **README is stale on API routes** — it lists `/api/ai/*` endpoints; the real routes are `/api/tutor/*`. Trust `server.ts` over `README.md`.
 
 ## Environment
 
