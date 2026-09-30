@@ -578,40 +578,76 @@ app.post('/api/sandbox/run', async (req: Request, res: Response) => {
           testResults = testCases.map((tc, index) => {
             try {
               // Try evaluating test expression in the same context
-              let testRunCode = '';
-              if (tc.input.startsWith('nums =')) {
-                // Parse standard test cases
-                testRunCode = `
-                  (function() {
-                    ${code}
-                    // Try to invoke declared function
-                    const fns = Object.keys(sandbox || {}).filter(k => typeof eval(k) === 'function');
-                  })()
-                `;
+              const paramNames = tc.input.split(',').map((part: string) => part.split('=')[0].trim()).filter(Boolean);
+              const testHarness = `
+                (function() {
+                  ${code}
+                  const candidateFns = ['twoSum', 'maxArea', 'search', 'numIslands', 'coinChange', 'isPalindrome', 'maxProfit', 'isValid', 'merge', 'reverseList', 'lengthOfLongestSubstring', 'climbStairs'];
+                  let fn = null;
+                  for (const name of candidateFns) {
+                    try {
+                      if (typeof eval(name) === 'function') {
+                        fn = eval(name);
+                        break;
+                      }
+                    } catch {}
+                  }
+                  if (!fn) {
+                    const match = (${JSON.stringify(code)}).match(/function\\s+([a-zA-Z0-9_$]+)\\s*\\(/) || 
+                                  (${JSON.stringify(code)}).match(/(?:const|let|var)\\s+([a-zA-Z0-9_$]+)\\s*=\\s*(?:function|\\([^)]*\\)\\s*=>)/);
+                    if (match) {
+                      try {
+                        if (typeof eval(match[1]) === 'function') fn = eval(match[1]);
+                      } catch {}
+                    }
+                  }
+                  if (typeof fn !== 'function') {
+                    throw new Error('Solution function not defined or not callable.');
+                  }
+                  let ${tc.input};
+                  const result = fn(${paramNames.join(', ')});
+                  return result;
+                })()
+              `;
+              const testScript = new vm.Script(testHarness, { filename: `test_${index}.js` });
+              const result = testScript.runInContext(context, { timeout: 1500 });
+              const actualStr = JSON.stringify(result) ?? 'undefined';
+              
+              // Normalize expected and actual for comparison
+              const normalizedExpected = tc.expected.trim();
+              let passed = actualStr === normalizedExpected;
+              if (!passed) {
+                try {
+                  passed = JSON.stringify(JSON.parse(actualStr)) === JSON.stringify(JSON.parse(normalizedExpected));
+                } catch {}
               }
+
               return {
                 testCaseIndex: index,
                 input: tc.input,
                 expected: tc.expected,
-                actual: logs[logs.length - 1] || 'Executed',
-                passed: true,
+                actual: actualStr,
+                passed: Boolean(passed),
               };
-            } catch {
+            } catch (tcErr: any) {
               return {
                 testCaseIndex: index,
                 input: tc.input,
                 expected: tc.expected,
-                actual: 'Error evaluating case',
+                actual: tcErr?.message || 'Error evaluating case',
                 passed: false,
               };
             }
           });
         }
 
+        const anyFailed = testResults.length > 0 && testResults.some(t => !t.passed);
+        const finalStatus = anyFailed ? 'wrong_answer' : 'success';
+
         res.json({
           stdout: logs.length > 0 ? logs.join('\n') : 'Code executed cleanly with no console output.',
           executionTimeMs,
-          status: 'success',
+          status: finalStatus,
           testResults: testResults.length > 0 ? testResults : undefined,
         });
         return;
@@ -679,11 +715,19 @@ Instructions:
     });
 
     const parsed = JSON.parse(response.text || '{}');
+    let finalStatus = parsed.status || 'success';
+    if (parsed.testResults && Array.isArray(parsed.testResults) && parsed.testResults.length > 0) {
+      const anyFailed = parsed.testResults.some((t: any) => !t.passed);
+      if (anyFailed && finalStatus !== 'error') {
+        finalStatus = 'wrong_answer';
+      }
+    }
+
     res.json({
       stdout: parsed.stdout || '',
       stderr: parsed.stderr || '',
       executionTimeMs: parsed.executionTimeMs || (Date.now() - startTime),
-      status: parsed.status || 'success',
+      status: finalStatus,
       testResults: parsed.testResults,
     });
   } catch (error: any) {
