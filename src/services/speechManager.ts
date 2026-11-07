@@ -2,30 +2,54 @@ import { GnaniVoiceId } from '../types';
 import { GNANI_VOICES } from '../data/gnaniVoicesData';
 import { synthesizeSpeech } from './api';
 
-// Helper to strip markdown and code blocks for clean text-to-speech pronunciation
-export function extractCleanSpeechText(markdown: string): string {
+// Helper to strip markdown, code blocks, and huge paragraphs for clean, fast, punchy speech
+export function extractCleanSpeechText(markdown: string, maxChars: number = 450): string {
   if (!markdown) return '';
-  return markdown
-    .replace(/```[\s\S]*?```/g, ' I have written a code snippet on your screen for this. ')
+  let cleaned = markdown
+    // Strip fenced code blocks
+    .replace(/```[\s\S]*?```/g, ' I have written the code snippet on your screen. ')
+    // Strip inline code backticks
     .replace(/`([^`]+)`/g, '$1')
+    // Strip links
     .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+    // Strip list markers and headers
+    .replace(/^[#*-]\s+/gm, '')
     .replace(/[#*_~>]/g, ' ')
+    // Clear Big-O pronunciation
     .replace(/O\(1\)/g, 'O of 1')
     .replace(/O\(N\)/g, 'O of N')
     .replace(/O\(N\s*\^\s*2\)/g, 'O of N squared')
     .replace(/O\(N\s*log\s*N\)/g, 'O of N log N')
     .replace(/O\(log\s*N\)/g, 'O of log N')
     .replace(/O\(2\s*\^\s*N\)/g, 'O of 2 to the N')
+    .replace(/O\(V\s*\+\s*E\)/g, 'O of V plus E')
     .replace(/\s+/g, ' ')
     .trim();
+
+  // If text is long, stop at the natural sentence boundary near maxChars for instant response
+  if (cleaned.length > maxChars) {
+    const cut = cleaned.slice(0, maxChars);
+    const lastPunctuation = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('? '), cut.lastIndexOf('! '));
+    if (lastPunctuation > 160) {
+      cleaned = cut.slice(0, lastPunctuation + 1);
+    } else {
+      cleaned = cut + '...';
+    }
+  }
+
+  return cleaned;
 }
 
 export interface AudioPlaybackState {
   isPlaying: boolean;
   isPaused: boolean;
+  isLoadingAudio: boolean;
   speakingMessageId: string | null;
   activeVoiceId: GnaniVoiceId;
   playbackProgress: number; // 0 to 100
+  spokenSnippet?: string;
+  lastSpokenText?: string;
+  rate: number;
 }
 
 class GnaniSpeechEngine {
@@ -38,9 +62,11 @@ class GnaniSpeechEngine {
   private state: AudioPlaybackState = {
     isPlaying: false,
     isPaused: false,
+    isLoadingAudio: false,
     speakingMessageId: null,
     activeVoiceId: 'classic',
     playbackProgress: 0,
+    rate: 1.0,
   };
 
   private notify() {
@@ -58,17 +84,33 @@ class GnaniSpeechEngine {
   }
 
   /**
+   * Pre-warms audio permissions on user gesture to avoid browser autoplay restrictions
+   */
+  public unlockAudio() {
+    if (typeof window === 'undefined') return;
+    try {
+      if (!this.audioElement) {
+        this.audioElement = new Audio();
+      }
+    } catch {}
+  }
+
+  /**
    * Interrupts and halts all ongoing speech playback immediately.
    */
   public interrupt() {
     // 1. Stop HTML5 Audio if playing server-generated sound
     if (this.audioElement) {
-      this.audioElement.pause();
-      this.audioElement.currentTime = 0;
+      try {
+        this.audioElement.pause();
+        this.audioElement.currentTime = 0;
+      } catch {}
       this.audioElement = null;
     }
     if (this.currentObjectUrl) {
-      URL.revokeObjectURL(this.currentObjectUrl);
+      try {
+        URL.revokeObjectURL(this.currentObjectUrl);
+      } catch {}
       this.currentObjectUrl = null;
     }
 
@@ -87,6 +129,7 @@ class GnaniSpeechEngine {
       ...this.state,
       isPlaying: false,
       isPaused: false,
+      isLoadingAudio: false,
       speakingMessageId: null,
       playbackProgress: 0,
     };
@@ -120,13 +163,23 @@ class GnaniSpeechEngine {
   }
 
   /**
+   * Replay last spoken text
+   */
+  public replay() {
+    if (this.state.lastSpokenText) {
+      void this.speakText(this.state.lastSpokenText, this.state.activeVoiceId, this.state.speakingMessageId || undefined);
+    }
+  }
+
+  /**
    * Speak text with the selected Gnani voice persona.
    * Attempts high-fidelity Gnani API synthesis first, falling back cleanly to Web Speech API.
    */
   public async speakText(
     text: string, 
     voiceId: GnaniVoiceId = 'classic', 
-    messageId?: string
+    messageId?: string,
+    speedMultiplier: number = 1.0
   ): Promise<void> {
     // Stop any existing playback first (interruptible)
     this.interrupt();
@@ -135,25 +188,32 @@ class GnaniSpeechEngine {
     if (!cleanText) return;
 
     const voiceConfig = GNANI_VOICES[voiceId] || GNANI_VOICES.classic;
+    const effectiveSpeed = Math.max(0.7, Math.min(1.5, (voiceConfig.webSpeechRate || 1.0) * speedMultiplier));
 
     this.state = {
-      isPlaying: true,
+      isPlaying: false,
       isPaused: false,
+      isLoadingAudio: true,
       speakingMessageId: messageId || 'preview',
       activeVoiceId: voiceId,
       playbackProgress: 0,
+      spokenSnippet: cleanText.length > 80 ? cleanText.slice(0, 80) + '...' : cleanText,
+      lastSpokenText: text,
+      rate: effectiveSpeed,
     };
     this.notify();
 
     // Try Gnani server synthesis first
     try {
-      const blob = await synthesizeSpeech(cleanText, voiceConfig.gnaniVoiceName, voiceConfig.webSpeechRate);
+      const blob = await synthesizeSpeech(cleanText, voiceConfig.gnaniVoiceName, effectiveSpeed);
       if (blob && blob.size > 0) {
         this.currentEngine = 'gnani-server';
         const url = URL.createObjectURL(blob);
         this.currentObjectUrl = url;
         const audio = new Audio(url);
         this.audioElement = audio;
+
+        audio.playbackRate = effectiveSpeed;
 
         audio.ontimeupdate = () => {
           if (audio.duration > 0) {
@@ -168,10 +228,20 @@ class GnaniSpeechEngine {
 
         audio.onerror = () => {
           console.warn('Gnani server audio playback failed, falling back to Web Speech API');
-          this.playWithWebSpeech(cleanText, voiceConfig, messageId);
+          this.playWithWebSpeech(cleanText, voiceConfig, messageId, effectiveSpeed);
+        };
+
+        // When audio is loaded and ready, update state and play
+        audio.oncanplay = () => {
+          this.state.isLoadingAudio = false;
+          this.state.isPlaying = true;
+          this.notify();
         };
 
         await audio.play();
+        this.state.isLoadingAudio = false;
+        this.state.isPlaying = true;
+        this.notify();
         return;
       }
     } catch (err) {
@@ -179,13 +249,14 @@ class GnaniSpeechEngine {
     }
 
     // Fallback: Web Speech API in the browser
-    this.playWithWebSpeech(cleanText, voiceConfig, messageId);
+    this.playWithWebSpeech(cleanText, voiceConfig, messageId, effectiveSpeed);
   }
 
   private playWithWebSpeech(
     text: string, 
     voiceConfig: typeof GNANI_VOICES['classic'], 
-    messageId?: string
+    messageId?: string,
+    speed: number = 1.0
   ) {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       this.interrupt();
@@ -198,8 +269,8 @@ class GnaniSpeechEngine {
       this.currentUtterance = utterance;
       this.currentEngine = 'browser-synthesis';
 
-      utterance.rate = voiceConfig.webSpeechRate;
-      utterance.pitch = voiceConfig.webSpeechPitch;
+      utterance.rate = speed;
+      utterance.pitch = voiceConfig.webSpeechPitch || 1.0;
 
       // Match best available browser voice
       const voices = window.speechSynthesis.getVoices();
@@ -215,6 +286,12 @@ class GnaniSpeechEngine {
           utterance.voice = match;
         }
       }
+
+      utterance.onstart = () => {
+        this.state.isLoadingAudio = false;
+        this.state.isPlaying = true;
+        this.notify();
+      };
 
       utterance.onend = () => {
         this.interrupt();

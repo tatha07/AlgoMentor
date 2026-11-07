@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrayPointersVisualizer } from './ArrayPointersVisualizer';
 import { SortingVisualizer } from './SortingVisualizer';
 import { RecursionTreeVisualizer } from './RecursionTreeVisualizer';
@@ -6,6 +6,7 @@ import { LinkedListVisualizer } from './LinkedListVisualizer';
 import { TreeGraphVisualizer } from './TreeGraphVisualizer';
 import { DpGridVisualizer } from './DpGridVisualizer';
 import { MonacoCodeEditor } from '../../common/MonacoCodeEditor';
+import { speechEngine, AudioPlaybackState } from '../../../services/speechManager';
 import { 
   Eye, 
   Code2, 
@@ -20,7 +21,9 @@ import {
   Cpu, 
   Sparkles,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Volume2,
+  Square
 } from 'lucide-react';
 
 interface AlgorithmVisualizerWorkbenchProps {

@@ -300,6 +300,16 @@ Be professional, inquisitive, and thorough. Ask them to explain their approach b
 Goal: Rapid recall, concept testing, and flashcard-style review.
 Provide concise summaries of the topic, then give 1-2 rapid-fire checkpoint questions to verify retention (e.g. "What is the worst-case time complexity of QuickSort and when does it occur?").`;
       break;
+    case 'doubt':
+      modeGuidance = `Teaching Mode: DOUBTS AREA & INSTANT CLARIFICATION.
+Goal: Resolve the student's specific algorithmic doubt or conceptual confusion with crystal clarity.
+Structure:
+1. Direct Answer: Give the direct, clear answer in 1-2 punchy sentences first.
+2. The Core Invariant / "Why": Explain why the condition, data structure, or pointer behavior works or fails.
+3. Concrete Counter-example / Trace: Show a minimal 2-3 line example or counter-example demonstrating the doubt.
+4. Summary: End with an encouraging 1-sentence recap.
+Keep it conversational, pedagogically sharp, and easy to digest both in text and when heard via Text-to-Speech audio.`;
+      break;
     case 'learn':
     default:
       modeGuidance = `Teaching Mode: LEARN MODE.
@@ -420,8 +430,32 @@ app.post('/api/speech/synthesize', async (req: Request, res: Response) => {
   }
 
   const text = req.body?.text;
-  const voice = req.body?.voice || 'Avinash';
+  const rawVoice = typeof req.body?.voice === 'string' ? req.body.voice.trim() : 'Avinash';
   const speed = typeof req.body?.speed === 'number' ? req.body.speed : 1.0;
+
+  // Supported voices by Gnani timbre-v3.0
+  const SUPPORTED_GNANI_VOICES = new Set([
+    'Avinash', 'Shivani', 'Lakshmi', 'Kalpana', 'Shubham', 'Prakash',
+    'Devansh', 'Yashraj', 'Chetana', 'Vasudha', 'Harshad', 'Riyaa', 'Tarika'
+  ]);
+
+  // Backward-compatibility alias mapping for requested persona names
+  const VOICE_ALIAS_MAP: Record<string, string> = {
+    'ananya': 'Shivani',
+    'raghav': 'Prakash',
+    'vikram': 'Devansh',
+    'pooja': 'Kalpana',
+    'mentor': 'Shivani',
+    'professor': 'Prakash',
+    'energetic': 'Devansh',
+    'calm': 'Kalpana',
+    'classic': 'Avinash',
+  };
+
+  let voice = rawVoice;
+  if (!SUPPORTED_GNANI_VOICES.has(voice)) {
+    voice = VOICE_ALIAS_MAP[rawVoice.toLowerCase()] || 'Avinash';
+  }
 
   if (typeof text !== 'string' || !text.trim()) {
     res.status(400).json({ error: 'Text to synthesize is required.' });
@@ -429,7 +463,7 @@ app.post('/api/speech/synthesize', async (req: Request, res: Response) => {
   }
 
   try {
-    const response = await fetch('https://api.vachana.ai/api/v1/tts/inference', {
+    let response = await fetch('https://api.vachana.ai/api/v1/tts/inference', {
       method: 'POST',
       headers: {
         'X-API-Key-ID': apiKey,
@@ -447,6 +481,29 @@ app.post('/api/speech/synthesize', async (req: Request, res: Response) => {
         },
       }),
     });
+
+    // If specific voice failed for any reason, try fallback to Avinash
+    if (!response.ok && voice !== 'Avinash') {
+      console.warn(`Gnani TTS failed with voice ${voice}, falling back to Avinash...`);
+      response = await fetch('https://api.vachana.ai/api/v1/tts/inference', {
+        method: 'POST',
+        headers: {
+          'X-API-Key-ID': apiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text,
+          model: 'timbre-v3.0',
+          voice: 'Avinash',
+          language: 'en-IN',
+          speed,
+          audio_config: {
+            encoding: 'linear_pcm',
+            container: 'wav',
+          },
+        }),
+      });
+    }
 
     if (!response.ok) {
       const message = await getGnaniErrorMessage(response);

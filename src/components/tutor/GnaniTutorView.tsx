@@ -6,6 +6,7 @@ import { GNANI_VOICES, GNANI_TEACHING_MODES, DSA_CURRICULUM_PROMPTS } from '../.
 import { speechEngine, AudioPlaybackState } from '../../services/speechManager';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { GnaniVoiceSelectorModal } from './GnaniVoiceSelectorModal';
+import { GnaniDoubtsArea } from './GnaniDoubtsArea';
 import { AlgorithmVisualizerWorkbench } from './visualizer/AlgorithmVisualizerWorkbench';
 import Markdown from 'react-markdown';
 import {
@@ -23,7 +24,8 @@ import {
   Loader2,
   AlertCircle,
   Flame,
-  Radio
+  Radio,
+  HelpCircle
 } from 'lucide-react';
 
 const VOICE_PREF_KEY = 'gnani_selected_voice_v2';
@@ -138,6 +140,7 @@ What concept or LeetCode problem are we tackling right now?`,
     const rawQuery = textToSend || inputText;
     if (!rawQuery.trim() || isLoading) return;
 
+    speechEngine.unlockAudio();
     speechEngine.interrupt();
 
     const userMsgText = rawQuery.trim();
@@ -209,7 +212,8 @@ What concept or LeetCode problem are we tackling right now?`,
   };
 
   const handleSpeakSingleMessage = (msg: ChatMessage) => {
-    if (playbackState.isPlaying && playbackState.speakingMessageId === msg.id) {
+    speechEngine.unlockAudio();
+    if (playbackState.speakingMessageId === msg.id && (playbackState.isPlaying || playbackState.isLoadingAudio)) {
       speechEngine.interrupt();
       return;
     }
@@ -307,123 +311,162 @@ What concept or LeetCode problem are we tackling right now?`,
 
       {/* Main Responsive Grid Layout */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 min-h-0 overflow-hidden">
-        {/* Left Pane: Conversational Voice Tutor (Col 6 or 12) */}
+        {/* Left Pane: Conversational Voice Tutor OR Doubts Area (Col 6 or 12) */}
         <div className={`flex flex-col h-full bg-white dark:bg-[#141517] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm transition-all ${
           isWorkbenchOpen ? 'lg:col-span-6 xl:col-span-6' : 'lg:col-span-12'
         }`}>
-          {/* Active Speaking Energetic Bar (Interruptible) */}
-          {playbackState.isPlaying && (
-            <div className="px-4 py-2 bg-orange-500/10 border-b border-orange-200 dark:border-orange-800/60 flex items-center justify-between text-xs font-mono animate-in fade-in">
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-0.5 h-3">
-                  <span className="w-1 bg-orange-500 h-3 animate-pulse rounded-full" />
-                  <span className="w-1 bg-orange-500 h-2 animate-pulse [animation-delay:0.2s] rounded-full" />
-                  <span className="w-1 bg-orange-500 h-4 animate-pulse [animation-delay:0.4s] rounded-full" />
-                  <span className="w-1 bg-orange-500 h-2 animate-pulse [animation-delay:0.1s] rounded-full" />
-                </div>
-                <span className="font-bold text-orange-700 dark:text-orange-400">
-                  {activeVoiceConfig.name} is explaining...
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {playbackState.isPaused ? (
-                  <button
-                    onClick={() => speechEngine.resume()}
-                    className="p-1 rounded bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:text-orange-500"
-                    title="Resume playback"
-                  >
-                    <Play className="w-3.5 h-3.5" />
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => speechEngine.pause()}
-                    className="p-1 rounded bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:text-orange-500"
-                    title="Pause playback"
-                  >
-                    <Pause className="w-3.5 h-3.5" />
-                  </button>
-                )}
-
-                {/* THE INTERRUPT BUTTON */}
-                <button
-                  onClick={() => speechEngine.interrupt()}
-                  id="btn-interrupt-speech"
-                  className="flex items-center gap-1 px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-xs transition-colors shadow-sm"
-                  title="Interrupt Gnani instantly"
-                >
-                  <Square className="w-3 h-3 fill-current" />
-                  <span>Interrupt</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Messages Stream */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-white dark:bg-[#141517]">
-            {messages.map(msg => {
-              const isUser = msg.role === 'user';
-              const isCurrentlySpeaking = playbackState.speakingMessageId === msg.id && playbackState.isPlaying;
-
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex items-start gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}
-                >
-                  {!isUser && (
-                    <div className="w-8 h-8 rounded-lg bg-orange-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm font-mono font-bold text-xs">
-                      <Flame className="w-4 h-4 fill-current" />
-                    </div>
-                  )}
-
-                  <div
-                    className={`group relative max-w-[88%] rounded-xl px-4 py-3.5 transition-all ${
-                      isUser
-                        ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md'
-                        : isCurrentlySpeaking
-                        ? 'bg-orange-50/70 dark:bg-orange-950/30 text-zinc-900 dark:text-zinc-100 border-2 border-orange-500 shadow-lg shadow-orange-500/10'
-                        : 'bg-zinc-50 dark:bg-[#0c0d0e] text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 shadow-sm'
-                    }`}
-                  >
-                    {/* Header Bar for AI response */}
-                    {!isUser && (
-                      <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-zinc-200 dark:border-zinc-800 text-[10px] font-mono text-zinc-500">
-                        <span className="font-bold text-orange-600 dark:text-orange-400">
-                          {activeVoiceConfig.name}
-                        </span>
-
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleSpeakSingleMessage(msg)}
-                            className={`flex items-center gap-1 px-1.5 py-0.5 rounded transition-colors ${
-                              isCurrentlySpeaking
-                                ? 'bg-orange-600 text-white'
-                                : 'hover:text-zinc-900 dark:hover:text-white'
-                            }`}
-                            title={isCurrentlySpeaking ? 'Stop speaking' : 'Read aloud with current Gnani voice'}
-                          >
-                            {isCurrentlySpeaking ? <Square className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
-                            <span>{isCurrentlySpeaking ? 'Stop' : 'Speak'}</span>
-                          </button>
-
-                          <button
-                            onClick={() => handleCopy(msg.content, msg.id)}
-                            className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white"
-                          >
-                            {copiedId === msg.id ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                            <span>{copiedId === msg.id ? 'Copied' : 'Copy'}</span>
-                          </button>
-                        </div>
+          {teachingMode === 'doubt' ? (
+            <GnaniDoubtsArea className="h-full border-0 rounded-none" />
+          ) : (
+            <>
+              {/* Active Speaking Energetic Bar (Interruptible) */}
+              {(playbackState.isPlaying || playbackState.isLoadingAudio) && (
+                <div className="px-4 py-2 bg-gradient-to-r from-orange-500/15 via-amber-500/10 to-orange-500/15 border-b border-orange-200 dark:border-orange-800/60 flex items-center justify-between text-xs font-mono animate-in fade-in">
+                  <div className="flex items-center gap-2">
+                    {playbackState.isLoadingAudio ? (
+                      <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 font-bold">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Synthesizing {activeVoiceConfig.name}'s voice explanation...</span>
                       </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-0.5 h-3">
+                          <span className="w-1 bg-orange-500 h-3 animate-pulse rounded-full" />
+                          <span className="w-1 bg-orange-500 h-2 animate-pulse [animation-delay:0.2s] rounded-full" />
+                          <span className="w-1 bg-orange-500 h-4 animate-pulse [animation-delay:0.4s] rounded-full" />
+                          <span className="w-1 bg-orange-500 h-2 animate-pulse [animation-delay:0.1s] rounded-full" />
+                        </div>
+                        <span className="font-bold text-orange-700 dark:text-orange-400">
+                          {activeVoiceConfig.name} is explaining...
+                        </span>
+                      </>
                     )}
-
-                    {/* Markdown Body */}
-                    <div className="prose dark:prose-invert prose-sm max-w-none break-words leading-relaxed space-y-2.5 font-sans">
-                      <Markdown>{msg.content}</Markdown>
-                    </div>
                   </div>
 
-                  {isUser && (
+                  <div className="flex items-center gap-2">
+                    {playbackState.isPlaying && (
+                      playbackState.isPaused ? (
+                        <button
+                          onClick={() => speechEngine.resume()}
+                          className="p-1 rounded bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:text-orange-500"
+                          title="Resume playback"
+                        >
+                          <Play className="w-3.5 h-3.5" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => speechEngine.pause()}
+                          className="p-1 rounded bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:text-orange-500"
+                          title="Pause playback"
+                        >
+                          <Pause className="w-3.5 h-3.5" />
+                        </button>
+                      )
+                    )}
+
+                    {/* THE INTERRUPT BUTTON */}
+                    <button
+                      onClick={() => speechEngine.interrupt()}
+                      id="btn-interrupt-speech"
+                      className="flex items-center gap-1 px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-xs transition-colors shadow-sm"
+                      title="Interrupt Gnani instantly"
+                    >
+                      <Square className="w-3 h-3 fill-current" />
+                      <span>Interrupt</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Messages Stream */}
+              <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-white dark:bg-[#141517]">
+                {messages.map(msg => {
+                  const isUser = msg.role === 'user';
+                  const isCurrentlySpeaking = playbackState.speakingMessageId === msg.id && playbackState.isPlaying;
+                  const isCurrentlyLoadingAudio = playbackState.speakingMessageId === msg.id && playbackState.isLoadingAudio;
+
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex items-start gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}
+                    >
+                      {!isUser && (
+                        <div className="w-8 h-8 rounded-lg bg-orange-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm font-mono font-bold text-xs">
+                          <Flame className="w-4 h-4 fill-current" />
+                        </div>
+                      )}
+
+                      <div
+                        className={`group relative max-w-[88%] rounded-xl px-4 py-3.5 transition-all ${
+                          isUser
+                            ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md'
+                            : isCurrentlySpeaking
+                            ? 'bg-orange-50/70 dark:bg-orange-950/30 text-zinc-900 dark:text-zinc-100 border-2 border-orange-500 shadow-lg shadow-orange-500/10'
+                            : 'bg-zinc-50 dark:bg-[#0c0d0e] text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 shadow-sm'
+                        }`}
+                      >
+                        {/* Header Bar for AI response */}
+                        {!isUser && (
+                          <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-zinc-200 dark:border-zinc-800 text-[10px] font-mono text-zinc-500">
+                            <span className="font-bold text-orange-600 dark:text-orange-400">
+                              {activeVoiceConfig.name}
+                            </span>
+
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleSpeakSingleMessage(msg)}
+                                className={`flex items-center gap-1 px-2 py-0.5 rounded transition-colors ${
+                                  isCurrentlySpeaking
+                                    ? 'bg-orange-600 text-white'
+                                    : isCurrentlyLoadingAudio
+                                    ? 'bg-orange-50 text-orange-600 dark:bg-orange-950/40'
+                                    : 'hover:text-zinc-900 dark:hover:text-white'
+                                }`}
+                                title={isCurrentlySpeaking ? 'Stop speaking' : 'Read aloud with current Gnani voice'}
+                              >
+                                {isCurrentlyLoadingAudio ? (
+                                  <>
+                                    <Loader2 className="w-3 h-3 animate-spin text-orange-500" />
+                                    <span>Generating...</span>
+                                  </>
+                                ) : isCurrentlySpeaking ? (
+                                  <>
+                                    <Square className="w-3 h-3 fill-current" />
+                                    <span>Stop</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Volume2 className="w-3 h-3 text-orange-500" />
+                                    <span>Speak</span>
+                                  </>
+                                )}
+                              </button>
+
+                              <button
+                                onClick={() => handleCopy(msg.content, msg.id)}
+                                className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white"
+                              >
+                                {copiedId === msg.id ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                                <span>{copiedId === msg.id ? 'Copied' : 'Copy'}</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Markdown Body */}
+                        <div className="prose dark:prose-invert prose-sm max-w-none break-words leading-relaxed space-y-2.5 font-sans">
+                          <Markdown>{msg.content}</Markdown>
+                        </div>
+                      </div>
+
+                      {isUser && (
+                        <div className="w-8 h-8 rounded-lg bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 flex items-center justify-center text-zinc-700 dark:text-zinc-300 shrink-0 mt-0.5 font-mono text-xs font-bold">
+                          U
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
                     <div className="w-8 h-8 rounded-lg bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 flex items-center justify-center text-zinc-700 dark:text-zinc-300 shrink-0 mt-0.5 font-mono text-xs font-bold">
                       U
                     </div>

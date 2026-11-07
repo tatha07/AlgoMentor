@@ -4,6 +4,8 @@ import { PRACTICE_PROBLEMS } from '../../data/practiceProblems';
 import { PracticeProblem, PracticeMode } from '../../types';
 import { getProgressiveHint, evaluateSolution } from '../../services/api';
 import { MonacoCodeEditor } from '../common/MonacoCodeEditor';
+import { GnaniDoubtsArea } from '../tutor/GnaniDoubtsArea';
+import { speechEngine, AudioPlaybackState } from '../../services/speechManager';
 import Markdown from 'react-markdown';
 import { 
   CheckCircle2, 
@@ -12,7 +14,12 @@ import {
   Terminal, 
   Lightbulb,
   Flame,
-  ChevronRight
+  ChevronRight,
+  Volume2,
+  Square,
+  HelpCircle,
+  BookOpen,
+  Loader2
 } from 'lucide-react';
 
 export const PracticeArenaView: React.FC = () => {
@@ -36,6 +43,14 @@ export const PracticeArenaView: React.FC = () => {
   const [unlockedHintLevel, setUnlockedHintLevel] = useState<number>(0);
   const [aiHints, setAiHints] = useState<Record<number, string>>({});
   const [isFetchingHint, setIsFetchingHint] = useState(false);
+
+  // Tab state between Problem & Doubts Area
+  const [leftTab, setLeftTab] = useState<'problem' | 'doubts'>('problem');
+  const [playbackState, setPlaybackState] = useState<AudioPlaybackState>(() => speechEngine.getState());
+
+  useEffect(() => {
+    return speechEngine.subscribe(setPlaybackState);
+  }, []);
 
   // Evaluation state
   const [isEvaluating, setIsEvaluating] = useState(false);
@@ -189,10 +204,49 @@ export const PracticeArenaView: React.FC = () => {
 
       {/* Split Workspace Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left Column: Problem Description, Hints Ladder (5 Cols) */}
+        {/* Left Column: Problem Description, Hints Ladder OR Doubts Area (5 Cols) */}
         <div className="lg:col-span-5 space-y-4">
-          {/* Problem Details Card */}
-          <div className="p-6 rounded-2xl bg-white dark:bg-[#141517] border border-zinc-200 dark:border-zinc-800 space-y-4 shadow-sm">
+          {/* Left Panel Segmented Tab Switcher */}
+          <div className="flex items-center gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-mono">
+            <button
+              onClick={() => setLeftTab('problem')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all flex-1 justify-center ${
+                leftTab === 'problem'
+                  ? 'bg-orange-600 text-white font-bold shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Problem & Hints</span>
+            </button>
+
+            <button
+              onClick={() => setLeftTab('doubts')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all flex-1 justify-center ${
+                leftTab === 'doubts'
+                  ? 'bg-orange-600 text-white font-bold shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+              }`}
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span>Doubts Area</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-600 dark:text-orange-400 font-bold">
+                TTS Voice
+              </span>
+            </button>
+          </div>
+
+          {leftTab === 'doubts' ? (
+            <GnaniDoubtsArea
+              contextProblemTitle={activeProblem.title}
+              contextCode={code}
+              contextLanguage={language}
+              compact={false}
+            />
+          ) : (
+            <>
+              {/* Problem Details Card */}
+              <div className="p-6 rounded-2xl bg-white dark:bg-[#141517] border border-zinc-200 dark:border-zinc-800 space-y-4 shadow-sm">
             <div>
               <div className="flex items-center justify-between text-xs font-mono text-zinc-500 mb-1">
                 <span>{activeProblem.topicName}</span>
@@ -263,13 +317,32 @@ export const PracticeArenaView: React.FC = () => {
               {Array.from({ length: unlockedHintLevel }).map((_, idx) => {
                 const lvl = idx + 1;
                 const hintContent = aiHints[lvl] || activeProblem.progressiveHints[idx] || 'Clue loading...';
+                const isSpeakingHint = playbackState.speakingMessageId === `hint-${lvl}` && playbackState.isPlaying;
+
                 return (
                   <div
                     key={lvl}
-                    className="p-3.5 rounded-xl bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800/40 text-xs text-zinc-800 dark:text-zinc-200 leading-relaxed font-sans space-y-1"
+                    className="p-3.5 rounded-xl bg-orange-50/50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800/40 text-xs text-zinc-800 dark:text-zinc-200 leading-relaxed font-sans space-y-1.5"
                   >
-                    <div className="font-mono text-[10px] font-bold uppercase text-orange-600 dark:text-orange-400">
-                      Hint Level {lvl}
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[10px] font-bold uppercase text-orange-600 dark:text-orange-400">
+                        Hint Level {lvl}
+                      </span>
+                      <button
+                        onClick={() => {
+                          speechEngine.unlockAudio();
+                          if (isSpeakingHint) {
+                            speechEngine.interrupt();
+                          } else {
+                            void speechEngine.speakText(hintContent, 'energetic', `hint-${lvl}`);
+                          }
+                        }}
+                        className="flex items-center gap-1 text-[10px] font-mono text-orange-600 dark:text-orange-400 hover:text-orange-500"
+                        title="Hear this hint aloud"
+                      >
+                        {isSpeakingHint ? <Square className="w-3 h-3 fill-current" /> : <Volume2 className="w-3 h-3" />}
+                        <span>{isSpeakingHint ? 'Stop' : 'Speak'}</span>
+                      </button>
                     </div>
                     <div>{hintContent}</div>
                   </div>
@@ -303,6 +376,8 @@ export const PracticeArenaView: React.FC = () => {
               </div>
             )}
           </div>
+          </>
+          )}
         </div>
 
         {/* Right Column: Monaco Code Editor & Solution Review (7 Cols) */}
@@ -349,12 +424,44 @@ export const PracticeArenaView: React.FC = () => {
                   <Terminal className="w-4 h-4" />
                   <span>Code Review & Big-O Derivation</span>
                 </div>
-                <button
-                  onClick={() => setEvaluationResult(null)}
-                  className="text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-                >
-                  Dismiss
-                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      speechEngine.unlockAudio();
+                      if (playbackState.speakingMessageId === 'eval-result' && (playbackState.isPlaying || playbackState.isLoadingAudio)) {
+                        speechEngine.interrupt();
+                      } else {
+                        void speechEngine.speakText(evaluationResult, 'energetic', 'eval-result');
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono font-bold rounded-lg bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60 hover:bg-orange-100 transition-colors"
+                  >
+                    {playbackState.speakingMessageId === 'eval-result' && playbackState.isLoadingAudio ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin text-orange-500" />
+                        <span>Synthesizing...</span>
+                      </>
+                    ) : playbackState.speakingMessageId === 'eval-result' && playbackState.isPlaying ? (
+                      <>
+                        <Square className="w-3 h-3 fill-current text-orange-500" />
+                        <span>Stop Voice</span>
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 className="w-3 h-3 text-orange-500" />
+                        <span>Listen to Review</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => setEvaluationResult(null)}
+                    className="text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                  >
+                    Dismiss
+                  </button>
+                </div>
               </div>
 
               <div className="prose dark:prose-invert prose-sm max-w-none text-zinc-800 dark:text-zinc-200 leading-relaxed font-sans space-y-3">

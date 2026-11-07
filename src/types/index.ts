@@ -57,7 +57,7 @@ export interface GnaniVoiceConfig {
   accentColor: string;
 }
 
-export type TeachingMode = 'learn' | 'solve' | 'hint' | 'interview' | 'revision';
+export type TeachingMode = 'learn' | 'solve' | 'hint' | 'interview' | 'revision' | 'doubt';
 
 export interface TeachingModeConfig {
   id: TeachingMode;

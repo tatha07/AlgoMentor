@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GnaniVoiceId } from '../../types';
 import { GNANI_VOICES } from '../../data/gnaniVoicesData';
 import { speechEngine } from '../../services/speechManager';
@@ -29,24 +29,25 @@ export const GnaniVoiceSelectorModal: React.FC<GnaniVoiceSelectorModalProps> = (
   selectedVoiceId,
   onSelectVoice,
 }) => {
-  const [previewingVoiceId, setPreviewingVoiceId] = useState<GnaniVoiceId | null>(null);
+  const [playbackState, setPlaybackState] = useState(() => speechEngine.getState());
+
+  useEffect(() => {
+    return speechEngine.subscribe(setPlaybackState);
+  }, []);
 
   if (!isOpen) return null;
 
   const handlePreviewVoice = async (voiceId: GnaniVoiceId) => {
-    if (previewingVoiceId === voiceId) {
+    if (playbackState.isPlaying && playbackState.activeVoiceId === voiceId) {
       speechEngine.interrupt();
-      setPreviewingVoiceId(null);
       return;
     }
 
     const config = GNANI_VOICES[voiceId];
-    setPreviewingVoiceId(voiceId);
-
     try {
       await speechEngine.speakText(config.sampleText, voiceId, 'voice-preview');
-    } finally {
-      setPreviewingVoiceId(null);
+    } catch (err) {
+      console.error('Failed to preview voice:', err);
     }
   };
 
@@ -104,7 +105,7 @@ export const GnaniVoiceSelectorModal: React.FC<GnaniVoiceSelectorModalProps> = (
           {(Object.keys(GNANI_VOICES) as GnaniVoiceId[]).map(voiceKey => {
             const voice = GNANI_VOICES[voiceKey];
             const isSelected = selectedVoiceId === voiceKey;
-            const isPreviewing = previewingVoiceId === voiceKey;
+            const isPreviewing = playbackState.isPlaying && playbackState.activeVoiceId === voiceKey;
 
             return (
               <div
