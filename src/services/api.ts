@@ -1,5 +1,36 @@
 import { InterviewEvaluation } from '../types';
 
+export async function transcribeSpeech(audio: Blob): Promise<string> {
+  const res = await fetch('/api/speech/transcribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'audio/wav' },
+    body: audio,
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || `Failed to transcribe audio (${res.status})`);
+  }
+
+  const data = await res.json();
+  return data.transcript;
+}
+
+export async function synthesizeSpeech(text: string): Promise<Blob> {
+  const res = await fetch('/api/speech/synthesize', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || `Failed to synthesize speech (${res.status})`);
+  }
+
+  return res.blob();
+}
+
 export async function askAiTutor(params: {
   message: string;
   conversationHistory?: { role: string; content: string }[];

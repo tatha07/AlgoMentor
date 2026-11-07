@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { askAiTutor } from '../../services/api';
+import { askAiTutor, synthesizeSpeech, transcribeSpeech } from '../../services/api';
 import { ChatMessage, TutorTone } from '../../types';
 import Markdown from 'react-markdown';
 import { 
@@ -14,8 +14,65 @@ import {
   Check, 
   Trash2, 
   Code, 
-  User
+  User,
+  Mic,
+  Square,
+  Volume2,
+  Loader2
 } from 'lucide-react';
+
+async function convertRecordingToWav(recording: Blob): Promise<Blob> {
+  const audioContext = new AudioContext();
+  try {
+    const audioBuffer = await audioContext.decodeAudioData(await recording.arrayBuffer());
+    const frameCount = audioBuffer.length;
+    const channelData = Array.from({ length: audioBuffer.numberOfChannels }, (_, index) =>
+      audioBuffer.getChannelData(index)
+    );
+    const wav = new ArrayBuffer(44 + frameCount * 2);
+    const view = new DataView(wav);
+    const writeString = (offset: number, value: string) => {
+      for (let index = 0; index < value.length; index++) {
+        view.setUint8(offset + index, value.charCodeAt(index));
+      }
+    };
+
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + frameCount * 2, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, audioBuffer.sampleRate, true);
+    view.setUint32(28, audioBuffer.sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeString(36, 'data');
+    view.setUint32(40, frameCount * 2, true);
+
+    for (let frame = 0; frame < frameCount; frame++) {
+      let sample = 0;
+      for (const channel of channelData) {
+        sample += channel[frame] / channelData.length;
+      }
+      const pcmSample = Math.max(-1, Math.min(1, sample));
+      view.setInt16(44 + frame * 2, pcmSample < 0 ? pcmSample * 0x8000 : pcmSample * 0x7fff, true);
+    }
+
+    return new Blob([wav], { type: 'audio/wav' });
+  } finally {
+    await audioContext.close();
+  }
+}
+
+function getSpeechText(markdown: string): string {
+  return markdown
+    .replace(/```[\s\S]*?```/g, ' Code block omitted. ')
+    .replace(/[`*_#>\[\]()]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 const DEFAULT_QUICK_QUESTIONS = [
   'Why is QuickSort O(N log N) on average but O(N^2) worst case?',
@@ -48,13 +105,150 @@ What algorithm or concept are we tackling today?`,
   const [codeInput, setCodeInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const [speechError, setSpeechError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const recordingTimeoutRef = useRef<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
+
+  useEffect(() => {
+    return () => {
+      if (recordingTimeoutRef.current !== null) {
+        window.clearTimeout(recordingTimeoutRef.current);
+      }
+      const recorder = recorderRef.current;
+      if (recorder && recorder.state !== 'inactive') {
+        recorder.onstop = null;
+        recorder.stop();
+      }
+      recorder?.stream.getTracks().forEach(track => track.stop());
+      audioRef.current?.pause();
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+      }
+    };
+  }, []);
+
+  const startRecording = async () => {
+    setSpeechError(null);
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+      setSpeechError('Audio recording is not supported by this browser.');
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = ['audio/webm;codecs=opus', 'audio/mp4'].find(type =>
+        MediaRecorder.isTypeSupported(type)
+      );
+      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+      recorderRef.current = recorder;
+      recorder.ondataavailable = event => {
+        if (event.data.size > 0) chunks.push(event.data);
+      };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach(track => track.stop());
+        setIsRecording(false);
+        setIsTranscribing(true);
+        try {
+          const recording = new Blob(chunks, { type: recorder.mimeType });
+          if (!recording.size) {
+            throw new Error('No audio was recorded.');
+          }
+          const wav = await convertRecordingToWav(recording);
+          const transcript = await transcribeSpeech(wav);
+          if (!transcript.trim()) {
+            throw new Error('No speech was detected. Try recording again.');
+          }
+          setInputText(current => `${current.trim()}${current.trim() ? ' ' : ''}${transcript}`);
+          textareaRef.current?.focus();
+        } catch (error) {
+          setSpeechError(error instanceof Error ? error.message : 'Could not transcribe the recording.');
+        } finally {
+          setIsTranscribing(false);
+        }
+      };
+      recorder.onerror = () => {
+        stream.getTracks().forEach(track => track.stop());
+        setIsRecording(false);
+        setSpeechError('Audio recording failed. Please try again.');
+      };
+      recorder.start(250);
+      setIsRecording(true);
+      recordingTimeoutRef.current = window.setTimeout(() => {
+        if (recorder.state === 'recording') recorder.stop();
+      }, 30000);
+    } catch (error) {
+      setSpeechError(error instanceof Error ? error.message : 'Microphone access was denied.');
+    }
+  };
+
+  const toggleRecording = () => {
+    if (isRecording) {
+      if (recordingTimeoutRef.current !== null) {
+        window.clearTimeout(recordingTimeoutRef.current);
+        recordingTimeoutRef.current = null;
+      }
+      recorderRef.current?.stop();
+      return;
+    }
+    void startRecording();
+  };
+
+  const handleSpeakMessage = async (message: ChatMessage) => {
+    if (speakingId === message.id) {
+      audioRef.current?.pause();
+      setSpeakingId(null);
+      return;
+    }
+
+    setSpeechError(null);
+    audioRef.current?.pause();
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
+    }
+
+    const text = getSpeechText(message.content);
+    if (!text) return;
+
+    setSpeakingId(message.id);
+    try {
+      const audioBlob = await synthesizeSpeech(text);
+      const audioUrl = URL.createObjectURL(audioBlob);
+      audioUrlRef.current = audioUrl;
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl);
+        audioUrlRef.current = null;
+        audioRef.current = null;
+        setSpeakingId(null);
+      };
+      audio.onerror = () => {
+        URL.revokeObjectURL(audioUrl);
+        audioUrlRef.current = null;
+        audioRef.current = null;
+        setSpeakingId(null);
+        setSpeechError('Could not play the generated audio.');
+      };
+      await audio.play();
+    } catch (error) {
+      setSpeakingId(null);
+      setSpeechError(error instanceof Error ? error.message : 'Could not synthesize speech.');
+    }
+  };
 
   const handleSendMessage = async (textToSend?: string) => {
     const rawQuery = textToSend || inputText;
@@ -237,6 +431,15 @@ What algorithm or concept are we tackling today?`,
                       <Sparkles className="w-3 h-3" /> Senior Instructor
                     </span>
                     <button
+                      onClick={() => void handleSpeakMessage(msg)}
+                      title={speakingId === msg.id ? 'Stop speaking' : 'Read this reply aloud'}
+                      disabled={speakingId !== null && speakingId !== msg.id}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white disabled:opacity-40"
+                    >
+                      {speakingId === msg.id ? <Square className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+                      <span>{speakingId === msg.id ? 'Stop' : 'Speak'}</span>
+                    </button>
+                    <button
                       onClick={() => handleCopy(msg.content, msg.id)}
                       className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white"
                     >
@@ -351,6 +554,22 @@ What algorithm or concept are we tackling today?`,
 
           <button
             type="button"
+            onClick={toggleRecording}
+            disabled={isTranscribing || isLoading}
+            id="btn-record-message"
+            title={isRecording ? 'Stop recording' : 'Dictate a message'}
+            aria-label={isRecording ? 'Stop recording' : 'Dictate a message'}
+            className={`p-2.5 rounded-xl transition-colors disabled:opacity-40 disabled:pointer-events-none ${
+              isRecording
+                ? 'bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400'
+                : 'text-zinc-500 hover:text-indigo-600 dark:text-zinc-400 dark:hover:text-indigo-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+            }`}
+          >
+            {isTranscribing ? <Loader2 className="w-4 h-4 animate-spin" /> : isRecording ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+          </button>
+
+          <button
+            type="button"
             onClick={() => handleSendMessage()}
             disabled={(!inputText.trim() && !codeInput.trim()) || isLoading}
             id="btn-send-message"
@@ -359,6 +578,21 @@ What algorithm or concept are we tackling today?`,
             <Send className="w-4 h-4" />
           </button>
         </div>
+        {speechError && (
+          <p role="alert" className="mt-2 px-2 text-xs text-rose-600 dark:text-rose-400">
+            {speechError}
+          </p>
+        )}
+        {isRecording && (
+          <p className="mt-2 px-2 text-xs text-rose-600 dark:text-rose-400">
+            Recording… select stop when you’re done (30-second limit).
+          </p>
+        )}
+        {isTranscribing && (
+          <p className="mt-2 px-2 text-xs text-indigo-600 dark:text-indigo-400">
+            Transcribing with Gnani…
+          </p>
+        )}
       </div>
     </div>
   );

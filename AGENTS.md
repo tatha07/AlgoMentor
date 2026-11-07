@@ -17,12 +17,12 @@ Single monolithic repo. Frontend (React 19 + Vite + Tailwind CSS) and backend (E
 
 **Entry points:**
 - Frontend: `src/main.tsx` → `src/App.tsx` (tab-based SPA with 10 views)
-- Backend: `server.ts` (Express + WS + Vite middleware + Gemini proxy + sandbox)
+- Backend: `server.ts` (Express + WS + Vite middleware + Gemini text proxy + Gnani speech proxy + sandbox)
 
 **Key boundaries:**
 - `src/components/` — 13 view/component directories, one per feature tab
 - `src/context/` — `AuthContext.tsx` (Firebase auth), `AppContext.tsx` (tab state, user prefs)
-- `src/services/api.ts` — all frontend-to-backend API calls (Gemini tutor endpoints)
+- `src/services/api.ts` — frontend-to-backend API calls for Gemini tutor and Gnani speech endpoints
 - `src/data/` — **static JSON data**: `practiceProblems.ts`, `dsaTopics.ts`, `assessmentQuestions.ts`, `demoProfiles.ts`. No database queries for content.
 - `src/lib/firebase.ts` — Firebase singleton init from `firebase-applet-config.json`
 - `src/types/index.ts` — all shared TS types
@@ -33,6 +33,8 @@ Single monolithic repo. Frontend (React 19 + Vite + Tailwind CSS) and backend (E
 - `POST /api/tutor/explain-code` — code breakdown
 - `POST /api/tutor/evaluate-solution` — Big-O + correctness review
 - `POST /api/tutor/interview` — mock interview (dialogue or scorecard)
+- `POST /api/speech/transcribe` — Gnani speech-to-text for tutor microphone dictation
+- `POST /api/speech/synthesize` — Gnani text-to-speech for tutor replies
 - `POST /api/sandbox/run` — JS via `vm` sandbox; Python/C++/Java via Gemini simulation
 - `GET/POST /api/collab/rooms` — in-memory study rooms
 - `ws://.../ws` — WebSocket for live code sync and room chat
@@ -46,9 +48,10 @@ Single monolithic repo. Frontend (React 19 + Vite + Tailwind CSS) and backend (E
 
 ## Environment
 
-- **Required**: `GEMINI_API_KEY` in `.env`
+- **Required for text AI**: `GEMINI_API_KEY` in `.env`
+- **Required for tutor speech**: `GNANI_API_KEY` in `.env`
 - Firebase config is committed in `firebase-applet-config.json` (not env-based)
-- `.env` is gitignored. Copy `.env` or set `GEMINI_API_KEY` before running.
+- `.env` is gitignored. Configure the API keys required for the features you use.
 
 ## Conventions
 

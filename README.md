@@ -2,7 +2,7 @@
 
 AlgoMentor is a full-stack DSA learning platform that helps users build algorithmic intuition while practicing in a real coding environment. The app combines AI-powered tutoring, structured curriculum progression, live collaborative rooms, and code execution tooling into a single web app served on port 3000.
 
-It is built with React 19 + Vite on the frontend, Express + WebSockets on the backend, Firebase for auth and persistence, and Google Gemini for AI coaching and interview simulation.
+It is built with React 19 + Vite on the frontend, Express + WebSockets on the backend, Firebase for auth and persistence, Google Gemini for text-based AI coaching and interview simulation, and Gnani for tutor speech recognition and synthesis.
 
 ## Overview
 
@@ -21,7 +21,7 @@ AlgoMentor is designed for people who want to learn Data Structures and Algorith
 |---|---|
 | Frontend | React 19, Vite, TypeScript, Tailwind CSS v4, Monaco Editor |
 | Backend | Express, Node.js, WebSockets (`ws`) |
-| AI | Google Gemini via `@google/genai` |
+| AI | Google Gemini via `@google/genai` for text; Gnani Speech APIs for tutor voice input/output |
 | Authentication & sync | Firebase Auth + Firestore |
 | Execution | Node VM sandbox for JavaScript; Gemini-backed simulation for Python/C++/Java |
 | Real-time collaboration | WebSocket room broadcasting + in-memory room state |
@@ -43,6 +43,8 @@ Express server (same port 3000)
   ├─ /api/tutor/explain-code
   ├─ /api/tutor/evaluate-solution
   ├─ /api/tutor/interview
+  ├─ /api/speech/transcribe
+  ├─ /api/speech/synthesize
   ├─ /api/sandbox/run
   ├─ /api/collab/rooms
   └─ WebSocket server at /ws
@@ -99,6 +101,8 @@ Supported behavior:
 - final interview scorecards
 
 The tutor has a guiding system instruction that attempts to redirect non-DSA requests with a playful “savage senior dev” persona while staying within the domain.
+
+The tutor chat also supports microphone dictation and spoken assistant replies through Gnani. Text generation remains on Gemini.
 
 ### 3. Practice arena
 
@@ -212,7 +216,8 @@ AlgoMentor/
 
 - Node.js 18+ recommended
 - npm
-- Gemini API key
+- Gemini API key for text generation
+- Gnani API key for speech recognition and synthesis
 - Firebase project config available in `firebase-applet-config.json`
 
 ### Install dependencies
@@ -227,6 +232,7 @@ Create a `.env` file in the project root with:
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
+GNANI_API_KEY=your_gnani_api_key_here
 ```
 
 The app also expects `firebase-applet-config.json` to exist and be valid for Firebase initialization.

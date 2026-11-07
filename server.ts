@@ -21,10 +21,10 @@ function getGenAI(): GoogleGenAI {
   if (!aiClient) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      console.warn('GEMINI_API_KEY is not set in environment variables.');
+      throw new Error('GEMINI_API_KEY is not set in environment variables.');
     }
     aiClient = new GoogleGenAI({
-      apiKey: apiKey || '',
+      apiKey,
       httpOptions: {
         headers: {
           'User-Agent': 'aistudio-build',
@@ -241,6 +241,116 @@ PERSONALITY & TEACHING PHILOSOPHY:
 // Health endpoint
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', service: 'AlgoMentor DSA Backend' });
+});
+
+async function getGnaniErrorMessage(response: globalThis.Response): Promise<string> {
+  const body = await response.text();
+  if (!body) {
+    return `Gnani API returned status ${response.status}.`;
+  }
+
+  try {
+    const data = JSON.parse(body);
+    const message = data.detail?.message ?? data.error?.message ?? data.message;
+    return typeof message === 'string' ? message : body;
+  } catch {
+    return body;
+  }
+}
+
+app.post(
+  '/api/speech/transcribe',
+  express.raw({ type: 'audio/wav', limit: '5mb' }),
+  async (req: Request, res: Response) => {
+    const apiKey = process.env.GNANI_API_KEY;
+    if (!apiKey) {
+      res.status(503).json({ error: 'GNANI_API_KEY is not set in environment variables.' });
+      return;
+    }
+    if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
+      res.status(400).json({ error: 'A non-empty WAV audio recording is required.' });
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.set('audio_file', new Blob([new Uint8Array(req.body)], { type: 'audio/wav' }), 'speech.wav');
+      formData.set('model', 'prisma-v3.0');
+      formData.set('language_code', 'en-IN');
+      formData.set('format', 'transcribe');
+
+      const response = await fetch('https://api.vachana.ai/stt/v3', {
+        method: 'POST',
+        headers: { 'X-API-Key-ID': apiKey },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const message = await getGnaniErrorMessage(response);
+        res.status(502).json({ error: `Gnani speech recognition failed: ${message}` });
+        return;
+      }
+
+      const result = await response.json();
+      if (typeof result.transcript !== 'string') {
+        res.status(502).json({ error: 'Gnani returned an invalid transcription response.' });
+        return;
+      }
+
+      res.json({ transcript: result.transcript });
+    } catch (error) {
+      console.error('Error in /api/speech/transcribe:', error);
+      res.status(502).json({ error: 'Could not reach the Gnani speech recognition service.' });
+    }
+  }
+);
+
+app.post('/api/speech/synthesize', async (req: Request, res: Response) => {
+  const apiKey = process.env.GNANI_API_KEY;
+  if (!apiKey) {
+    res.status(503).json({ error: 'GNANI_API_KEY is not set in environment variables.' });
+    return;
+  }
+
+  const text = req.body?.text;
+  if (typeof text !== 'string' || !text.trim()) {
+    res.status(400).json({ error: 'Text to synthesize is required.' });
+    return;
+  }
+
+  try {
+    const response = await fetch('https://api.vachana.ai/api/v1/tts/inference', {
+      method: 'POST',
+      headers: {
+        'X-API-Key-ID': apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text,
+        model: 'timbre-v3.0',
+        voice: 'Avinash',
+        language: 'en-IN',
+        audio_config: {
+          encoding: 'linear_pcm',
+          container: 'wav',
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const message = await getGnaniErrorMessage(response);
+      res.status(502).json({ error: `Gnani speech synthesis failed: ${message}` });
+      return;
+    }
+
+    const audio = Buffer.from(await response.arrayBuffer());
+    res.setHeader('Content-Type', response.headers.get('content-type') || 'audio/wav');
+    res.setHeader('Cache-Control', 'no-store');
+    res.send(audio);
+  } catch (error) {
+    console.error('Error in /api/speech/synthesize:', error);
+    res.status(502).json({ error: 'Could not reach the Gnani speech synthesis service.' });
+  }
 });
 
 // 1. General Tutor Chat Endpoint
