@@ -16,11 +16,11 @@ export async function transcribeSpeech(audio: Blob): Promise<string> {
   return data.transcript;
 }
 
-export async function synthesizeSpeech(text: string): Promise<Blob> {
+export async function synthesizeSpeech(text: string, voice: string = 'Avinash', speed: number = 1.0): Promise<Blob> {
   const res = await fetch('/api/speech/synthesize', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, voice, speed }),
   });
 
   if (!res.ok) {
@@ -37,6 +37,9 @@ export async function askAiTutor(params: {
   userLevel?: string;
   tone?: string;
   currentTopic?: string;
+  mode?: string;
+  voicePersona?: string;
+  preferredLanguage?: string;
 }): Promise<string> {
   const res = await fetch('/api/tutor/chat', {
     method: 'POST',

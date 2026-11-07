@@ -1,0 +1,147 @@
+import { GnaniVoiceConfig, GnaniVoiceId, TeachingModeConfig, TeachingMode } from '../types';
+
+export const GNANI_VOICES: Record<GnaniVoiceId, GnaniVoiceConfig> = {
+  classic: {
+    id: 'classic',
+    name: 'Gnani Classic',
+    tagline: 'Clear, balanced, professional instructor',
+    description: 'Articulate and structured. Delivers high-clarity computer science pedagogy with systematic step-by-step derivations.',
+    gnaniVoiceName: 'Avinash',
+    webSpeechRate: 1.0,
+    webSpeechPitch: 1.0,
+    badge: 'Standard',
+    sampleText: 'Welcome! I am Gnani Classic. Tell me which data structure or algorithm we should break down today.',
+    avatarGradient: 'from-indigo-500 via-indigo-600 to-violet-700',
+    accentColor: 'indigo',
+  },
+  mentor: {
+    id: 'mentor',
+    name: 'Gnani Mentor',
+    tagline: 'Friendly, encouraging, conversational coach',
+    description: 'Warm and empathetic. Uses relatable real-life analogies, celebrates your progress, and builds algorithmic confidence.',
+    gnaniVoiceName: 'Ananya',
+    webSpeechRate: 1.04,
+    webSpeechPitch: 1.06,
+    badge: 'Popular',
+    sampleText: 'Hey there! DSA can feel daunting, but we will conquer it one insight at a time. What concept are you curious about?',
+    avatarGradient: 'from-emerald-500 via-teal-500 to-cyan-600',
+    accentColor: 'emerald',
+  },
+  professor: {
+    id: 'professor',
+    name: 'Gnani Professor',
+    tagline: 'Mature, detailed, academic rigor & proofs',
+    description: 'Deliberate and formal. Emphasizes formal invariants, amortized analysis, space-time trade-offs, and proofs of correctness.',
+    gnaniVoiceName: 'Raghav',
+    webSpeechRate: 0.92,
+    webSpeechPitch: 0.88,
+    badge: 'Deep Dive',
+    sampleText: 'Greetings. Let us examine the fundamental invariants and asymptotic complexities of your algorithm.',
+    avatarGradient: 'from-blue-600 via-indigo-700 to-slate-800',
+    accentColor: 'blue',
+  },
+  energetic: {
+    id: 'energetic',
+    name: 'Gnani Energetic',
+    tagline: 'Expressive, dynamic, high-tempo motivator',
+    description: 'High energy and enthusiastic. Frames problems with real-world engineering stakes, fast-paced dry runs, and active challenges.',
+    gnaniVoiceName: 'Vikram',
+    webSpeechRate: 1.12,
+    webSpeechPitch: 1.1,
+    badge: 'High Energy',
+    sampleText: 'Let’s crush this! From brute-force O(N squared) straight to optimal O(N log N). What are we optimizing today?!',
+    avatarGradient: 'from-amber-500 via-orange-500 to-rose-600',
+    accentColor: 'amber',
+  },
+  calm: {
+    id: 'calm',
+    name: 'Gnani Calm',
+    tagline: 'Slow, patient, beginner-friendly explanations',
+    description: 'Gentle, soothing tempo. Never rushes you, breaks complex pointer manipulations into micro-steps, and removes all learning stress.',
+    gnaniVoiceName: 'Pooja',
+    webSpeechRate: 0.88,
+    webSpeechPitch: 0.95,
+    badge: 'Relaxed',
+    sampleText: 'Take your time. We will walk through every pointer and condition step by step together.',
+    avatarGradient: 'from-violet-500 via-purple-500 to-pink-500',
+    accentColor: 'purple',
+  },
+};
+
+export const GNANI_TEACHING_MODES: Record<TeachingMode, TeachingModeConfig> = {
+  learn: {
+    id: 'learn',
+    name: 'Learn Mode',
+    badge: 'Foundations',
+    description: 'Explain a DSA concept from first principles with intuitive analogies, dry runs, and code.',
+    starterPrompt: 'Explain how Binary Search works using an everyday intuition.',
+    iconName: 'BookOpen',
+  },
+  solve: {
+    id: 'solve',
+    name: 'Solve Mode',
+    badge: 'Interactive',
+    description: 'Guide me to solve a problem step by step without giving away the full code right away.',
+    starterPrompt: 'Help me solve Container With Most Water step by step without spoiling the answer.',
+    iconName: 'Wrench',
+  },
+  hint: {
+    id: 'hint',
+    name: 'Hint Mode',
+    badge: 'Progressive',
+    description: 'Provide progressive hints starting with conceptual clues up to algorithmic patterns.',
+    starterPrompt: 'Give me a subtle hint for detecting a cycle in a linked list.',
+    iconName: 'Lightbulb',
+  },
+  interview: {
+    id: 'interview',
+    name: 'Interview Mode',
+    badge: 'FAANG Prep',
+    description: 'Act as a Senior FAANG technical interviewer and grill me on approach, complexity, and edge cases.',
+    starterPrompt: 'Interview me on the Two Sum problem like a Senior Engineer.',
+    iconName: 'Users',
+  },
+  revision: {
+    id: 'revision',
+    name: 'Revision Mode',
+    badge: 'Speed Quiz',
+    description: 'Rapid recall of time/space complexities, edge cases, and algorithmic invariants.',
+    starterPrompt: 'Test my knowledge on QuickSort vs MergeSort with 2 rapid questions.',
+    iconName: 'Sparkles',
+  },
+};
+
+export const DSA_CURRICULUM_PROMPTS = [
+  {
+    category: 'Foundations & Complexity',
+    prompts: [
+      'Explain Big-O, Big-Omega, and Big-Theta with everyday examples.',
+      'Why is array indexing O(1) in memory while search is O(N)?',
+      'What is amortized time complexity in dynamic arrays like ArrayList?',
+    ],
+  },
+  {
+    category: 'Pointers & Searching',
+    prompts: [
+      'Gnani, walk me through the Two Pointers pattern on Two Sum II.',
+      'Why does Binary Search require a sorted collection? Show me the invariant.',
+      'How does the Sliding Window pattern optimize subarray problems from O(N^2) to O(N)?',
+    ],
+  },
+  {
+    category: 'Trees, Heaps & Recursion',
+    prompts: [
+      'Explain recursion and call stack frames like I am 10 years old.',
+      'What makes a Red-Black Tree or AVL Tree balanced compared to a standard BST?',
+      'How does a Min-Heap guarantee O(log N) insertion and O(1) minimum retrieval?',
+    ],
+  },
+  {
+    category: 'Graphs & Dynamic Programming',
+    prompts: [
+      'When should I use BFS vs DFS in a grid or graph?',
+      'Explain Dijkstra’s shortest path algorithm using a relaxation analogy.',
+      'What is the fundamental difference between Memoization (top-down) and Tabulation (bottom-up)?',
+    ],
+  },
+];

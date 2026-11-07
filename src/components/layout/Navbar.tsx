@@ -30,21 +30,24 @@ export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 md:px-6 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 transition-colors duration-200">
       {/* Left: Branding & Tagline */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-mono font-bold shadow-md shadow-indigo-500/20 border border-indigo-400/20">
+      <div 
+        onClick={() => setActiveTab('tutor')}
+        className="flex items-center gap-3 cursor-pointer group"
+      >
+        <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-mono font-bold shadow-md shadow-indigo-500/20 border border-indigo-400/20 group-hover:scale-105 transition-transform">
           <Cpu className="w-5 h-5 text-white" />
         </div>
         <div>
           <div className="flex items-center gap-2">
             <span className="text-base font-bold tracking-tight text-zinc-900 dark:text-white font-mono">
-              AlgoMentor
+              Gnani 2.0
             </span>
             <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded">
-              AI DSA Instructor
+              Voice DSA Instructor
             </span>
           </div>
           <p className="hidden md:block text-[11px] text-zinc-500 dark:text-zinc-400">
-            Learn DSA. Solve smarter. Get roasted occasionally.
+            Conversational AI Computer Science Professor & Visualizer
           </p>
         </div>
       </div>

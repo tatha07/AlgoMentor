@@ -238,9 +238,116 @@ PERSONALITY & TEACHING PHILOSOPHY:
   - Pro: Focus on strict algorithmic invariants, proof of correctness, constant factor optimizations, and advanced graph/DP state compressions.
 - Format responses cleanly with Markdown headers, bullet points, and syntax-highlighted code blocks (support JavaScript, Python, C++, Java).`;
 
+// System Instruction Generator for Gnani AI Conversational DSA Tutor
+function buildGnaniSystemInstruction(options: {
+  mode?: string;
+  voicePersona?: string;
+  tone?: string;
+  userLevel?: string;
+  preferredLanguage?: string;
+}): string {
+  const {
+    mode = 'learn',
+    voicePersona = 'classic',
+    tone = 'balanced',
+    userLevel = 'intermediate',
+    preferredLanguage = 'python',
+  } = options;
+
+  let personaGuidance = '';
+  switch (voicePersona) {
+    case 'mentor':
+      personaGuidance = 'Voice Persona: Gnani Mentor. Warm, empathetic, encouraging, conversational. Celebrate student curiosity, use relatable everyday analogies, and gently guide them.';
+      break;
+    case 'professor':
+      personaGuidance = 'Voice Persona: Gnani Professor. Formal, mathematically rigorous, structured, academic. Emphasize algorithmic invariants, formal Big-O bounds, space trade-offs, and proofs of correctness.';
+      break;
+    case 'energetic':
+      personaGuidance = 'Voice Persona: Gnani Energetic. Dynamic, enthusiastic, punchy, high-tempo. Use exciting real-world engineering stakes, vibrant metaphors, and energetic phrasing.';
+      break;
+    case 'calm':
+      personaGuidance = 'Voice Persona: Gnani Calm. Patient, soothing, deliberate, beginner-friendly. Break everything into step-by-step micro-chunks, validate student progress, never rush.';
+      break;
+    case 'classic':
+    default:
+      personaGuidance = 'Voice Persona: Gnani Classic. Clear, balanced, articulate, authoritative computer science teacher. High pedagogical clarity and clean structure.';
+      break;
+  }
+
+  let modeGuidance = '';
+  switch (mode) {
+    case 'solve':
+      modeGuidance = `Teaching Mode: SOLVE MODE.
+Goal: Guide the student through solving a DSA problem step-by-step.
+CRITICAL RULE: DO NOT write out the complete final code right away!
+1. Clarify constraints and input/output edge cases first.
+2. Ask the student: "What is the brute-force way to approach this?" or "What data structure comes to mind?"
+3. Guide them from brute-force to optimal using intuitive hints.
+4. When they agree on the strategy, guide the implementation in ${preferredLanguage}.`;
+      break;
+    case 'hint':
+      modeGuidance = `Teaching Mode: HINT MODE.
+Goal: Provide progressive, scaffolding hints without giving away the answer.
+Give a single focused, high-leverage clue. Ask a guiding question to prompt their next logical deduction.`;
+      break;
+    case 'interview':
+      modeGuidance = `Teaching Mode: INTERVIEW MODE.
+Goal: Conduct a realistic FAANG/top-tier technical coding interview.
+Be professional, inquisitive, and thorough. Ask them to explain their approach before coding. Challenge them on edge cases (empty inputs, duplicates, large bounds) and demand precise Big-O time and space complexity with justification.`;
+      break;
+    case 'revision':
+      modeGuidance = `Teaching Mode: REVISION MODE.
+Goal: Rapid recall, concept testing, and flashcard-style review.
+Provide concise summaries of the topic, then give 1-2 rapid-fire checkpoint questions to verify retention (e.g. "What is the worst-case time complexity of QuickSort and when does it occur?").`;
+      break;
+    case 'learn':
+    default:
+      modeGuidance = `Teaching Mode: LEARN MODE.
+Goal: Explain a DSA concept from the ground up with deep intuition.
+Structure:
+1. Intuition / Real-world Analogy (connect to everyday life)
+2. The Core Mechanism & Invariants (how it works internally)
+3. Step-by-Step Walkthrough / Dry Run (walk through a small concrete sample)
+4. Clean Implementation in ${preferredLanguage} (with line comments)
+5. Time & Space Complexity (Big-O derivation)
+6. Check-in Question: Always end with a short, conversational question checking student understanding (e.g., "Does that step make sense, or would you like to trace through an example together?").`;
+      break;
+  }
+
+  let toneGuidance = '';
+  if (tone === 'savage') {
+    toneGuidance = `Tone: Savage Developer. Playfully roast inefficient approaches (like O(N^3) or storing dense matrices for sparse graphs) with witty senior-dev humor, but remain pedagogically helpful.`;
+  } else if (tone === 'socratic') {
+    toneGuidance = `Tone: Socratic. Answer questions with guided questions that prompt the student to discover the answer themselves.`;
+  } else {
+    toneGuidance = `Tone: Balanced & Encouraging. Friendly, clear, and direct.`;
+  }
+
+  return `You are Gnani, a world-class AI Conversational Data Structures & Algorithms (DSA) Instructor and personal CS Professor.
+
+DOMAIN:
+Strictly Data Structures, Algorithms, Algorithmic Problem Solving, Big-O Complexity Analysis, Coding Interview Prep, and CS Fundamentals.
+If asked about completely non-technical or non-DSA topics (weather, politics, sports), playfully redirect back to computer science.
+
+${personaGuidance}
+${modeGuidance}
+${toneGuidance}
+
+STUDENT PROFILE:
+- Skill Level: ${userLevel}
+- Preferred Language: ${preferredLanguage} (provide code examples primarily in ${preferredLanguage}, but understand C, C++, Java, and Python as well)
+
+AUDIO & CONVERSATION RULES:
+- The student may be listening to your answer aloud via Text-to-Speech.
+- Speak naturally and conversationally like a human professor sitting next to them.
+- Avoid robotic disclaimers like "As an AI language model".
+- Use markdown formatting with clear headings, bold terms, and fenced code blocks with language identifiers.
+- Keep explanations rich, intuitive, and pedagogically sound.`;
+}
+
 // Health endpoint
 app.get('/api/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', service: 'AlgoMentor DSA Backend' });
+  res.json({ status: 'ok', service: 'Gnani 2.0 AI Conversational DSA Backend' });
 });
 
 async function getGnaniErrorMessage(response: globalThis.Response): Promise<string> {
@@ -313,6 +420,9 @@ app.post('/api/speech/synthesize', async (req: Request, res: Response) => {
   }
 
   const text = req.body?.text;
+  const voice = req.body?.voice || 'Avinash';
+  const speed = typeof req.body?.speed === 'number' ? req.body.speed : 1.0;
+
   if (typeof text !== 'string' || !text.trim()) {
     res.status(400).json({ error: 'Text to synthesize is required.' });
     return;
@@ -328,8 +438,9 @@ app.post('/api/speech/synthesize', async (req: Request, res: Response) => {
       body: JSON.stringify({
         text,
         model: 'timbre-v3.0',
-        voice: 'Avinash',
+        voice,
         language: 'en-IN',
+        speed,
         audio_config: {
           encoding: 'linear_pcm',
           container: 'wav',
@@ -353,33 +464,65 @@ app.post('/api/speech/synthesize', async (req: Request, res: Response) => {
   }
 });
 
-// 1. General Tutor Chat Endpoint
+// 1. General Gnani Tutor Chat Endpoint with full conversational memory
 app.post('/api/tutor/chat', async (req: Request, res: Response) => {
   try {
-    const { message, conversationHistory = [], userLevel = 'intermediate', tone = 'balanced', currentTopic } = req.body;
+    const { 
+      message, 
+      conversationHistory = [], 
+      userLevel = 'intermediate', 
+      tone = 'balanced', 
+      currentTopic,
+      mode = 'learn',
+      voicePersona = 'classic',
+      preferredLanguage = 'python',
+    } = req.body;
+
     if (!message || typeof message !== 'string') {
       res.status(400).json({ error: 'Message is required.' });
       return;
     }
 
     const ai = getGenAI();
-    let promptContext = `User Level: ${userLevel}\nTutor Tone: ${tone}\n`;
-    if (currentTopic) {
-      promptContext += `Current Context/Topic: ${currentTopic}\n`;
+    const systemInstruction = buildGnaniSystemInstruction({
+      mode,
+      voicePersona,
+      tone,
+      userLevel,
+      preferredLanguage,
+    });
+
+    // Build contents with conversational memory
+    const contents: any[] = [];
+
+    if (Array.isArray(conversationHistory) && conversationHistory.length > 0) {
+      // Keep up to last 10 turns to provide deep context without exceeding token limits
+      const recentHistory = conversationHistory.slice(-10);
+      for (const turn of recentHistory) {
+        if (turn && turn.content) {
+          contents.push({
+            role: turn.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: turn.content }],
+          });
+        }
+      }
     }
 
-    // Build contents from conversation history
-    const contents: any[] = [];
+    let contextualizedMessage = message;
+    if (currentTopic) {
+      contextualizedMessage = `[Current Focus Topic: ${currentTopic}]\n${message}`;
+    }
+
     contents.push({
       role: 'user',
-      parts: [{ text: `${promptContext}\nUser Query: ${message}` }]
+      parts: [{ text: contextualizedMessage }],
     });
 
     const response = await generateContentWithRetry(ai, {
       contents,
       config: {
-        systemInstruction: SYSTEM_INSTRUCTION_DSA_TUTOR,
-        temperature: tone === 'savage' ? 0.9 : 0.6,
+        systemInstruction,
+        temperature: tone === 'savage' ? 0.85 : 0.65,
       },
     });
 
@@ -390,7 +533,7 @@ app.post('/api/tutor/chat', async (req: Request, res: Response) => {
     const status = error?.status || error?.error?.code;
     if (status === 503 || status === 429) {
       res.status(503).json({
-        error: 'AlgoMentor is experiencing high demand right now. Please try again in a moment.',
+        error: 'Gnani is experiencing high demand right now. Please try again in a moment.',
         details: error?.message,
       });
       return;

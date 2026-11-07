@@ -41,6 +41,42 @@ export interface FiveDayJourneyState {
 
 export type TutorTone = 'balanced' | 'savage' | 'socratic' | 'friendly';
 
+export type GnaniVoiceId = 'classic' | 'mentor' | 'professor' | 'energetic' | 'calm';
+
+export interface GnaniVoiceConfig {
+  id: GnaniVoiceId;
+  name: string;
+  tagline: string;
+  description: string;
+  gnaniVoiceName: string;
+  webSpeechRate: number;
+  webSpeechPitch: number;
+  badge: string;
+  sampleText: string;
+  avatarGradient: string;
+  accentColor: string;
+}
+
+export type TeachingMode = 'learn' | 'solve' | 'hint' | 'interview' | 'revision';
+
+export interface TeachingModeConfig {
+  id: TeachingMode;
+  name: string;
+  badge: string;
+  description: string;
+  starterPrompt: string;
+  iconName: string;
+}
+
+export type AlgorithmVisualizationType = 
+  | 'binary-search' 
+  | 'two-pointers' 
+  | 'sorting' 
+  | 'recursion-tree' 
+  | 'linked-list' 
+  | 'binary-tree' 
+  | 'dp-grid';
+
 export type PracticeMode = 'solve' | 'hint' | 'explain' | 'interview' | 'timed';
 
 export type ProblemDifficulty = 'easy' | 'medium' | 'hard';

@@ -15,12 +15,11 @@ export const MobileNav: React.FC = () => {
   const { activeTab, setActiveTab } = useApp();
 
   const mobileTabs = [
-    { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
+    { id: 'tutor', label: 'Gnani AI', icon: Bot },
+    { id: 'practice', label: 'Practice', icon: Code2 },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'journey', label: '5-Day', icon: Compass },
     { id: 'achievements', label: 'Badges', icon: Trophy },
-    { id: 'practice', label: 'Practice', icon: Code2 },
-    { id: 'chat', label: 'Tutor', icon: Bot },
-    { id: 'tracks', label: 'Tracks', icon: GraduationCap },
   ];
 
   return (

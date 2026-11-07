@@ -18,6 +18,7 @@ import { AuthModal } from './components/auth/AuthModal';
 import { AuthGateView } from './components/auth/AuthGateView';
 import { FiveDayJourneyView } from './components/journey/FiveDayJourneyView';
 import { AchievementView } from './components/achievements/AchievementView';
+import { GnaniTutorView } from './components/tutor/GnaniTutorView';
 import { Cpu } from 'lucide-react';
 
 const AppContent: React.FC = () => {
@@ -36,17 +37,20 @@ const AppContent: React.FC = () => {
             <div className="absolute -inset-1 rounded-2xl border-2 border-indigo-500/40 animate-ping" />
           </div>
           <div className="text-center space-y-1">
-            <h2 className="text-base font-bold font-mono text-zinc-900 dark:text-white">AlgoMentor</h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">Initializing your secure workspace...</p>
+            <h2 className="text-base font-bold font-mono text-zinc-900 dark:text-white">Gnani 2.0</h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">Initializing your conversational DSA tutor...</p>
           </div>
         </div>
       </div>
     );
   }
 
-  // Main active tab router
+  // Main active tab router - Gnani Tutor is the central product
   const renderActiveTab = () => {
     switch (activeTab) {
+      case 'tutor':
+      case 'chat':
+        return <GnaniTutorView />;
       case 'dashboard':
         return <DashboardView />;
       case 'journey':
@@ -55,8 +59,6 @@ const AppContent: React.FC = () => {
         return <AchievementView />;
       case 'auth':
         return <AuthGateView />;
-      case 'chat':
-        return <AiChatView />;
       case 'tracks':
         return <LearningTracksView />;
       case 'practice':
@@ -72,7 +74,7 @@ const AppContent: React.FC = () => {
       case 'resources':
         return <ResourcesView />;
       default:
-        return <DashboardView />;
+        return <GnaniTutorView />;
     }
   };
 
