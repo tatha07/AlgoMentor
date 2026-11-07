@@ -125,9 +125,9 @@ export const RecursionTreeVisualizer: React.FC = () => {
       <div className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-900/90 rounded-xl border border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
-            <GitBranch className="w-3.5 h-3.5 text-indigo-500" /> Recursion Tree: fib(4)
+            <GitBranch className="w-3.5 h-3.5 text-orange-500" /> Recursion Tree: fib(4)
           </span>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-orange-50 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-500/30">
             O(2^N) Naive vs O(N) DP
           </span>
         </div>
@@ -168,7 +168,7 @@ export const RecursionTreeVisualizer: React.FC = () => {
             <div
               className={`w-14 h-10 rounded-xl border-2 flex items-center justify-center font-mono text-xs font-bold transition-all ${
                 currentStep.activeNodeId === 'fib4'
-                  ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-500/30 scale-110'
+                  ? 'bg-orange-600 text-white border-orange-400 shadow-lg shadow-orange-500/30 scale-110'
                   : 'bg-zinc-100 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200'
               }`}
             >
@@ -183,7 +183,7 @@ export const RecursionTreeVisualizer: React.FC = () => {
               <div
                 className={`w-14 h-10 rounded-xl border-2 flex items-center justify-center font-mono text-xs font-bold transition-all ${
                   currentStep.activeNodeId.startsWith('fib3')
-                    ? 'bg-indigo-600 text-white border-indigo-400 shadow-md scale-105'
+                    ? 'bg-orange-600 text-white border-orange-400 shadow-md scale-105'
                     : 'bg-zinc-100 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200'
                 }`}
               >
@@ -209,7 +209,7 @@ export const RecursionTreeVisualizer: React.FC = () => {
           {/* Level 2: Sub-branches */}
           <div className="grid grid-cols-4 gap-2 sm:gap-4 text-center">
             <div className={`p-1.5 rounded-lg border text-[11px] font-mono font-semibold ${
-              currentStep.activeNodeId === 'fib2_left' ? 'bg-indigo-600 text-white border-indigo-400' : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400'
+              currentStep.activeNodeId === 'fib2_left' ? 'bg-orange-600 text-white border-orange-400' : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400'
             }`}>fib(2)</div>
             <div className={`p-1.5 rounded-lg border text-[11px] font-mono font-semibold ${
               currentStep.activeNodeId === 'fib1_left2' ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400'
@@ -227,7 +227,7 @@ export const RecursionTreeVisualizer: React.FC = () => {
         <div className="p-3 bg-zinc-50 dark:bg-zinc-900/90 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-zinc-800 dark:text-zinc-200 mb-2.5 pb-2 border-b border-zinc-200 dark:border-zinc-800">
-              <Layers className="w-3.5 h-3.5 text-indigo-500" />
+              <Layers className="w-3.5 h-3.5 text-orange-500" />
               <span>Call Stack (LIFO)</span>
               <span className="ml-auto text-[10px] text-zinc-400">{currentStep.callStack.length} Frames</span>
             </div>
@@ -238,7 +238,7 @@ export const RecursionTreeVisualizer: React.FC = () => {
                   key={idx}
                   className={`p-2 rounded-xl border text-xs font-mono transition-all ${
                     idx === currentStep.callStack.length - 1
-                      ? 'bg-indigo-500/15 border-indigo-400 text-indigo-600 dark:text-indigo-300 font-bold shadow-sm'
+                      ? 'bg-orange-500/15 border-orange-400 text-orange-600 dark:text-orange-300 font-bold shadow-sm'
                       : 'bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300'
                   }`}
                 >
@@ -267,7 +267,7 @@ export const RecursionTreeVisualizer: React.FC = () => {
         <p className="text-zinc-900 dark:text-zinc-100 font-medium">
           {currentStep.description}
         </p>
-        <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 font-mono text-[11px]">
+        <div className="p-2 rounded-lg bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800/60 text-orange-700 dark:text-orange-300 font-mono text-[11px]">
           💡 <strong>Professor's Invariant:</strong> {currentStep.insight}
         </div>
       </div>

@@ -16,26 +16,14 @@ import {
   Play,
   Pause,
   Send,
-  Sparkles,
-  Bot,
-  User,
-  Radio,
-  BookOpen,
-  Wrench,
-  Lightbulb,
-  Users,
-  Code2,
+  Terminal,
   Copy,
   Check,
-  RotateCcw,
-  Sliders,
-  Layers,
-  ChevronRight,
   Split,
-  Maximize2,
-  Minimize2,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Flame,
+  Radio
 } from 'lucide-react';
 
 const VOICE_PREF_KEY = 'gnani_selected_voice_v2';
@@ -50,7 +38,7 @@ export const GnaniTutorView: React.FC = () => {
       const saved = localStorage.getItem(VOICE_PREF_KEY);
       if (saved && saved in GNANI_VOICES) return saved as GnaniVoiceId;
     } catch {}
-    return 'classic';
+    return 'energetic';
   });
 
   // Auto-speak responses aloud
@@ -76,13 +64,15 @@ export const GnaniTutorView: React.FC = () => {
     {
       id: 'gnani-welcome',
       role: 'assistant',
-      content: `Hello **${userProfile.name.split(' ')[0]}**! I am **Gnani**, your personal AI Data Structures & Algorithms Professor.
+      content: `Hey **${userProfile.name.split(' ')[0]}**! I am **Gnani**, your personal AI Data Structures & Algorithms Professor.
 
-I am here to guide your intuition through interactive voice conversations, code breakdowns, and live visual algorithm dry runs.
+I am built to train your algorithmic intuition through live voice conversation, step-by-step invariant derivations, and interactive visual dry runs.
 
-You can **tap the microphone to speak to me**, ask me to explain any concept, guide you through a LeetCode problem in **Solve Mode**, or challenge you with a FAANG mock interview.
+- Tap the **microphone button** or press enter to ask any DSA question.
+- Select your learning mode (**Learn**, **Solve**, **Hint**, **Interview**, **Revision**).
+- Use the **interactive visualizer workbench** on the right to step through algorithms in real-time.
 
-What algorithm or problem should we dive into right now?`,
+What concept or LeetCode problem are we tackling right now?`,
       timestamp: new Date().toISOString(),
     },
   ]);
@@ -91,7 +81,7 @@ What algorithm or problem should we dive into right now?`,
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Speech Playback State from singleton engine
+  // Speech Playback State
   const [playbackState, setPlaybackState] = useState<AudioPlaybackState>(speechEngine.getState());
 
   useEffect(() => {
@@ -99,7 +89,6 @@ What algorithm or problem should we dive into right now?`,
     return () => unsubscribe();
   }, []);
 
-  // Save preferences
   const handleSelectVoice = (voiceId: GnaniVoiceId) => {
     setSelectedVoiceId(voiceId);
     try {
@@ -129,10 +118,9 @@ What algorithm or problem should we dive into right now?`,
     error: speechError,
     startListening,
     stopListening,
-    audioVolume,
   } = useSpeechRecognition(handleDictatedText);
 
-  // When listening starts, interrupt any talking Gnani
+  // When listening starts, interrupt talking Gnani
   useEffect(() => {
     if (isListening) {
       speechEngine.interrupt();
@@ -146,12 +134,10 @@ What algorithm or problem should we dive into right now?`,
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading, interimTranscript]);
 
-  // Send Message Handler
   const handleSendMessage = async (textToSend?: string) => {
     const rawQuery = textToSend || inputText;
     if (!rawQuery.trim() || isLoading) return;
 
-    // Interrupt current speech
     speechEngine.interrupt();
 
     const userMsgText = rawQuery.trim();
@@ -193,7 +179,6 @@ What algorithm or problem should we dive into right now?`,
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      // If auto-speak is enabled, speak the answer aloud
       if (autoSpeak) {
         void speechEngine.speakText(reply, selectedVoiceId, assistantMessageId);
       }
@@ -201,7 +186,7 @@ What algorithm or problem should we dive into right now?`,
       const errorMsg: ChatMessage = {
         id: `err-${Date.now()}`,
         role: 'assistant',
-        content: `⚠️ **Connection Issue**: ${err?.message || 'Could not reach Gnani. Please check your network or API keys.'}`,
+        content: `Could not reach Gnani. Please check your network or API keys: ${err?.message}`,
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, errorMsg]);
@@ -240,29 +225,28 @@ What algorithm or problem should we dive into right now?`,
 
   return (
     <div className="flex flex-col h-[calc(100vh-6.2rem)] w-full max-w-7xl mx-auto space-y-3">
-      {/* Top Banner: Active Voice Persona & Mode Switcher */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white dark:bg-zinc-900/90 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm transition-colors">
+      {/* Top Bar: Voice Persona & Teaching Mode Segmented Controls */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white dark:bg-[#141517] rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm transition-colors">
         {/* Left: Active Voice Badge & Audition Button */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsVoiceModalOpen(true)}
             id="btn-voice-selector"
-            className="flex items-center gap-2.5 p-1.5 pr-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all text-left group"
-            title="Click to change Gnani voice persona"
+            className="flex items-center gap-2.5 p-1.5 pr-3 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/80 hover:border-orange-500 transition-all text-left group"
           >
-            <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${activeVoiceConfig.avatarGradient} flex items-center justify-center text-white shadow-sm font-mono font-bold text-xs`}>
+            <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${activeVoiceConfig.avatarGradient} flex items-center justify-center text-white font-mono font-bold text-xs shadow-sm`}>
               <Radio className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-bold text-zinc-900 dark:text-white font-mono group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                <span className="text-xs font-bold text-zinc-900 dark:text-white font-mono group-hover:text-orange-500">
                   {activeVoiceConfig.name}
                 </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 font-semibold">
-                  Voice
+                <span className="text-[10px] font-mono text-zinc-400">
+                  {activeVoiceConfig.badge}
                 </span>
               </div>
-              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate max-w-[150px]">
+              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate max-w-[140px]">
                 {activeVoiceConfig.tagline}
               </p>
             </div>
@@ -271,20 +255,19 @@ What algorithm or problem should we dive into right now?`,
           {/* Auto-Speak Toggle */}
           <button
             onClick={handleToggleAutoSpeak}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-mono font-medium transition-colors border ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-colors border ${
               autoSpeak
-                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30'
-                : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700'
+                ? 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400 border-orange-200 dark:border-orange-800/60'
+                : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800'
             }`}
-            title={autoSpeak ? 'Auto-speech is ON (replies speak aloud)' : 'Auto-speech is MUTED'}
           >
-            {autoSpeak ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-            <span className="hidden sm:inline">{autoSpeak ? 'Audio ON' : 'Muted'}</span>
+            {autoSpeak ? <Volume2 className="w-3.5 h-3.5 text-orange-500" /> : <VolumeX className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">{autoSpeak ? 'Voice ON' : 'Muted'}</span>
           </button>
         </div>
 
-        {/* Center: Teaching Mode Switcher */}
-        <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-950 p-1 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-mono">
+        {/* Center: Teaching Mode Segmented Switcher */}
+        <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-mono">
           {(Object.keys(GNANI_TEACHING_MODES) as TeachingMode[]).map(modeKey => {
             const mode = GNANI_TEACHING_MODES[modeKey];
             const isActive = teachingMode === modeKey;
@@ -293,9 +276,9 @@ What algorithm or problem should we dive into right now?`,
               <button
                 key={mode.id}
                 onClick={() => setTeachingMode(mode.id)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all ${
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all ${
                   isActive
-                    ? 'bg-white dark:bg-indigo-600 text-indigo-700 dark:text-white font-bold shadow-sm'
+                    ? 'bg-orange-600 text-white font-bold shadow-sm'
                     : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
                 }`}
                 title={mode.description}
@@ -310,37 +293,36 @@ What algorithm or problem should we dive into right now?`,
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsWorkbenchOpen(!isWorkbenchOpen)}
-            className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-medium border transition-colors ${
+            className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold border transition-colors ${
               isWorkbenchOpen
-                ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/30'
-                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700'
+                ? 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400 border-orange-200 dark:border-orange-800/60'
+                : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800'
             }`}
-            title="Toggle Algorithm Visualizer & Code Sandbox Workbench"
           >
-            <Split className="w-3.5 h-3.5" />
-            <span>{isWorkbenchOpen ? 'Hide Visualizer' : 'Show Visualizer'}</span>
+            <Split className="w-3.5 h-3.5 text-orange-500" />
+            <span>{isWorkbenchOpen ? 'Hide Visualizer' : 'Open Visualizer'}</span>
           </button>
         </div>
       </div>
 
       {/* Main Responsive Grid Layout */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 min-h-0 overflow-hidden">
-        {/* Left Pane: Conversational AI Voice Tutor (Col 7 or 12) */}
-        <div className={`flex flex-col h-full bg-white dark:bg-zinc-900/90 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm transition-all ${
+        {/* Left Pane: Conversational Voice Tutor (Col 6 or 12) */}
+        <div className={`flex flex-col h-full bg-white dark:bg-[#141517] rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm transition-all ${
           isWorkbenchOpen ? 'lg:col-span-6 xl:col-span-6' : 'lg:col-span-12'
         }`}>
-          {/* Active Speaking Floating Bar (Interruptible) */}
+          {/* Active Speaking Energetic Bar (Interruptible) */}
           {playbackState.isPlaying && (
-            <div className="px-4 py-2 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-indigo-500/10 border-b border-indigo-200 dark:border-indigo-800 flex items-center justify-between text-xs font-mono animate-in fade-in">
+            <div className="px-4 py-2 bg-orange-500/10 border-b border-orange-200 dark:border-orange-800/60 flex items-center justify-between text-xs font-mono animate-in fade-in">
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-0.5 h-3">
-                  <span className="w-1 bg-indigo-500 h-3 animate-pulse rounded-full" />
-                  <span className="w-1 bg-indigo-500 h-2 animate-pulse [animation-delay:0.2s] rounded-full" />
-                  <span className="w-1 bg-indigo-500 h-4 animate-pulse [animation-delay:0.4s] rounded-full" />
-                  <span className="w-1 bg-indigo-500 h-2 animate-pulse [animation-delay:0.1s] rounded-full" />
+                  <span className="w-1 bg-orange-500 h-3 animate-pulse rounded-full" />
+                  <span className="w-1 bg-orange-500 h-2 animate-pulse [animation-delay:0.2s] rounded-full" />
+                  <span className="w-1 bg-orange-500 h-4 animate-pulse [animation-delay:0.4s] rounded-full" />
+                  <span className="w-1 bg-orange-500 h-2 animate-pulse [animation-delay:0.1s] rounded-full" />
                 </div>
-                <span className="font-semibold text-indigo-700 dark:text-indigo-300">
-                  {activeVoiceConfig.name} is speaking...
+                <span className="font-bold text-orange-700 dark:text-orange-400">
+                  {activeVoiceConfig.name} is explaining...
                 </span>
               </div>
 
@@ -348,7 +330,7 @@ What algorithm or problem should we dive into right now?`,
                 {playbackState.isPaused ? (
                   <button
                     onClick={() => speechEngine.resume()}
-                    className="p-1 rounded bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:text-indigo-500"
+                    className="p-1 rounded bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:text-orange-500"
                     title="Resume playback"
                   >
                     <Play className="w-3.5 h-3.5" />
@@ -356,7 +338,7 @@ What algorithm or problem should we dive into right now?`,
                 ) : (
                   <button
                     onClick={() => speechEngine.pause()}
-                    className="p-1 rounded bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:text-indigo-500"
+                    className="p-1 rounded bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:text-orange-500"
                     title="Pause playback"
                   >
                     <Pause className="w-3.5 h-3.5" />
@@ -367,7 +349,7 @@ What algorithm or problem should we dive into right now?`,
                 <button
                   onClick={() => speechEngine.interrupt()}
                   id="btn-interrupt-speech"
-                  className="flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white font-bold text-[11px] transition-colors shadow-sm"
+                  className="flex items-center gap-1 px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-xs transition-colors shadow-sm"
                   title="Interrupt Gnani instantly"
                 >
                   <Square className="w-3 h-3 fill-current" />
@@ -378,7 +360,7 @@ What algorithm or problem should we dive into right now?`,
           )}
 
           {/* Messages Stream */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-5 bg-white dark:bg-zinc-900/40">
+          <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-white dark:bg-[#141517]">
             {messages.map(msg => {
               const isUser = msg.role === 'user';
               const isCurrentlySpeaking = playbackState.speakingMessageId === msg.id && playbackState.isPlaying;
@@ -389,25 +371,25 @@ What algorithm or problem should we dive into right now?`,
                   className={`flex items-start gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}
                 >
                   {!isUser && (
-                    <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${activeVoiceConfig.avatarGradient} flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm`}>
-                      <Bot className="w-4 h-4" />
+                    <div className="w-8 h-8 rounded-lg bg-orange-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm font-mono font-bold text-xs">
+                      <Flame className="w-4 h-4 fill-current" />
                     </div>
                   )}
 
                   <div
-                    className={`group relative max-w-[88%] rounded-2xl px-4 py-3.5 transition-all ${
+                    className={`group relative max-w-[88%] rounded-xl px-4 py-3.5 transition-all ${
                       isUser
-                        ? 'bg-indigo-600 text-white shadow-md'
+                        ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md'
                         : isCurrentlySpeaking
-                        ? 'bg-indigo-50/70 dark:bg-indigo-950/40 text-zinc-900 dark:text-zinc-100 border-2 border-indigo-400 shadow-lg shadow-indigo-500/10'
-                        : 'bg-zinc-50 dark:bg-zinc-950/70 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800/80 shadow-sm'
+                        ? 'bg-orange-50/70 dark:bg-orange-950/30 text-zinc-900 dark:text-zinc-100 border-2 border-orange-500 shadow-lg shadow-orange-500/10'
+                        : 'bg-zinc-50 dark:bg-[#0c0d0e] text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 shadow-sm'
                     }`}
                   >
                     {/* Header Bar for AI response */}
                     {!isUser && (
-                      <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-zinc-200 dark:border-zinc-800/60 text-[10px] font-mono text-zinc-500 dark:text-zinc-400">
-                        <span className="flex items-center gap-1 font-semibold text-indigo-600 dark:text-indigo-400">
-                          <Sparkles className="w-3 h-3" /> {activeVoiceConfig.name}
+                      <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-zinc-200 dark:border-zinc-800 text-[10px] font-mono text-zinc-500">
+                        <span className="font-bold text-orange-600 dark:text-orange-400">
+                          {activeVoiceConfig.name}
                         </span>
 
                         <div className="flex items-center gap-2">
@@ -415,7 +397,7 @@ What algorithm or problem should we dive into right now?`,
                             onClick={() => handleSpeakSingleMessage(msg)}
                             className={`flex items-center gap-1 px-1.5 py-0.5 rounded transition-colors ${
                               isCurrentlySpeaking
-                                ? 'bg-indigo-600 text-white'
+                                ? 'bg-orange-600 text-white'
                                 : 'hover:text-zinc-900 dark:hover:text-white'
                             }`}
                             title={isCurrentlySpeaking ? 'Stop speaking' : 'Read aloud with current Gnani voice'}
@@ -442,8 +424,8 @@ What algorithm or problem should we dive into right now?`,
                   </div>
 
                   {isUser && (
-                    <div className="w-8 h-8 rounded-xl bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 flex items-center justify-center text-zinc-700 dark:text-indigo-300 shrink-0 mt-0.5">
-                      <User className="w-4 h-4" />
+                    <div className="w-8 h-8 rounded-lg bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 flex items-center justify-center text-zinc-700 dark:text-zinc-300 shrink-0 mt-0.5 font-mono text-xs font-bold">
+                      U
                     </div>
                   )}
                 </div>
@@ -453,8 +435,8 @@ What algorithm or problem should we dive into right now?`,
             {/* Live Interim Speech Bubble as User Speaks */}
             {isListening && interimTranscript && (
               <div className="flex items-start gap-3 justify-end animate-in fade-in">
-                <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-indigo-500/20 text-indigo-900 dark:text-indigo-200 border border-indigo-400/40 text-sm font-sans flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping shrink-0" />
+                <div className="max-w-[85%] rounded-xl px-4 py-3 bg-orange-500/20 text-orange-950 dark:text-orange-200 border border-orange-500/40 text-sm font-sans flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping shrink-0" />
                   <span>{interimTranscript}</span>
                 </div>
               </div>
@@ -463,15 +445,15 @@ What algorithm or problem should we dive into right now?`,
             {/* AI Generating Indicator */}
             {isLoading && (
               <div className="flex items-start gap-3 animate-in fade-in">
-                <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${activeVoiceConfig.avatarGradient} flex items-center justify-center text-white shrink-0 shadow-sm animate-pulse`}>
-                  <Bot className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-lg bg-orange-600 text-white flex items-center justify-center shrink-0 shadow-sm animate-pulse">
+                  <Flame className="w-4 h-4 fill-current" />
                 </div>
-                <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-950/70 border border-zinc-200 dark:border-zinc-800/80 flex items-center gap-2 text-xs font-mono text-zinc-600 dark:text-zinc-400">
-                  <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce" />
-                  <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce [animation-delay:0.2s]" />
-                  <span className="w-2 h-2 rounded-full bg-indigo-500 animate-bounce [animation-delay:0.4s]" />
-                  <span className="ml-1 text-indigo-600 dark:text-indigo-300 font-semibold">
-                    {activeVoiceConfig.name} is preparing your step-by-step intuition...
+                <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-[#0c0d0e] border border-zinc-200 dark:border-zinc-800 flex items-center gap-2 text-xs font-mono text-zinc-600 dark:text-zinc-400">
+                  <span className="w-2 h-2 rounded-full bg-orange-500 animate-bounce" />
+                  <span className="w-2 h-2 rounded-full bg-orange-500 animate-bounce [animation-delay:0.2s]" />
+                  <span className="w-2 h-2 rounded-full bg-orange-500 animate-bounce [animation-delay:0.4s]" />
+                  <span className="ml-1 text-orange-600 dark:text-orange-400 font-bold">
+                    {activeVoiceConfig.name} is computing the algorithmic explanation...
                   </span>
                 </div>
               </div>
@@ -481,16 +463,16 @@ What algorithm or problem should we dive into right now?`,
           </div>
 
           {/* Quick Curriculum Prompts Bar */}
-          <div className="px-3 py-1.5 border-t border-zinc-200 dark:border-zinc-800/60 bg-zinc-50 dark:bg-zinc-950/40 overflow-x-auto flex items-center gap-1.5 no-scrollbar">
-            <span className="text-[10px] font-mono uppercase text-zinc-500 shrink-0 font-bold">
-              💡 Ask Gnani:
+          <div className="px-3 py-2 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-[#0c0d0e] overflow-x-auto flex items-center gap-1.5 no-scrollbar">
+            <span className="text-[10px] font-mono uppercase text-orange-600 dark:text-orange-400 shrink-0 font-bold">
+              Prompt Ideas:
             </span>
             {DSA_CURRICULUM_PROMPTS[0].prompts.map((q, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSendMessage(q)}
                 disabled={isLoading}
-                className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white border border-zinc-200 dark:border-zinc-800 transition-colors shrink-0 shadow-sm"
+                className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-950/30 text-zinc-700 dark:text-zinc-300 hover:text-orange-600 dark:hover:text-orange-400 border border-zinc-200 dark:border-zinc-800 transition-colors shrink-0 shadow-sm"
               >
                 {q}
               </button>
@@ -498,20 +480,20 @@ What algorithm or problem should we dive into right now?`,
           </div>
 
           {/* Microphone & Input Bar */}
-          <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/90 space-y-2">
+          <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-[#0c0d0e] space-y-2">
             {/* Listening Waveform Bar */}
             {isListening && (
-              <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 flex items-center justify-between text-xs font-mono text-rose-700 dark:text-rose-300 animate-pulse">
+              <div className="p-2.5 rounded-xl bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800/60 flex items-center justify-between text-xs font-mono text-orange-700 dark:text-orange-300 animate-pulse">
                 <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
-                  <span className="font-bold">Listening to your question... Speak naturally!</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-ping" />
+                  <span className="font-bold">Listening... Speak naturally.</span>
                 </div>
                 <button
                   type="button"
                   onClick={stopListening}
-                  className="px-2 py-0.5 rounded bg-rose-600 text-white font-bold text-[11px]"
+                  className="px-2.5 py-1 rounded-lg bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs"
                 >
-                  Done Speaking
+                  Done
                 </button>
               </div>
             )}
@@ -523,7 +505,7 @@ What algorithm or problem should we dive into right now?`,
               </div>
             )}
 
-            <div className="flex items-end gap-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 rounded-2xl p-2 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all shadow-sm">
+            <div className="flex items-end gap-2 bg-white dark:bg-[#141517] border border-zinc-300 dark:border-zinc-800 rounded-xl p-2 focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-500/20 transition-all shadow-sm">
               <textarea
                 ref={textareaRef}
                 rows={1}
@@ -531,7 +513,7 @@ What algorithm or problem should we dive into right now?`,
                 onChange={e => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask Gnani: 'Explain binary search', 'Help me solve Two Sum', or speak with the mic..."
-                className="flex-1 max-h-32 bg-transparent text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none resize-none py-1.5 px-2"
+                className="flex-1 max-h-32 bg-transparent text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none resize-none py-1.5 px-2 font-sans"
               />
 
               {/* Main Microphone Button */}
@@ -546,8 +528,8 @@ What algorithm or problem should we dive into right now?`,
                 aria-label={isListening ? 'Stop recording voice' : 'Speak to Gnani'}
                 className={`p-3 rounded-xl transition-all shadow-sm ${
                   isListening
-                    ? 'bg-rose-600 text-white animate-pulse shadow-rose-500/30 ring-4 ring-rose-500/20 scale-105'
-                    : 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/30'
+                    ? 'bg-orange-600 text-white animate-pulse ring-4 ring-orange-500/30 scale-105'
+                    : 'bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/50'
                 }`}
                 title={isListening ? 'Stop listening' : 'Start voice conversation with Gnani'}
               >
@@ -566,7 +548,7 @@ What algorithm or problem should we dive into right now?`,
                 onClick={() => handleSendMessage()}
                 disabled={!inputText.trim() || isLoading}
                 id="btn-send-message"
-                className="p-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-40 disabled:pointer-events-none transition-colors shadow-sm shadow-indigo-600/20"
+                className="p-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white disabled:opacity-40 disabled:pointer-events-none transition-colors shadow-sm shadow-orange-600/20"
                 title="Send message"
               >
                 <Send className="w-4 h-4" />
@@ -575,7 +557,7 @@ What algorithm or problem should we dive into right now?`,
           </div>
         </div>
 
-        {/* Right Pane: Visual Learning & Code Workbench (Col 6 or overlay) */}
+        {/* Right Pane: Visual Learning & Code Workbench (Col 6) */}
         {isWorkbenchOpen && (
           <div className="lg:col-span-6 xl:col-span-6 h-full min-h-[400px]">
             <AlgorithmVisualizerWorkbench

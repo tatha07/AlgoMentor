@@ -75,9 +75,9 @@ export const DpGridVisualizer: React.FC = () => {
       <div className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-900/90 rounded-xl border border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
-            <Cpu className="w-3.5 h-3.5 text-indigo-500" /> DP Tabulation: Coin Change (Target = 7)
+            <Cpu className="w-3.5 h-3.5 text-orange-500" /> DP Tabulation: Coin Change (Target = 7)
           </span>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-orange-50 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-500/30">
             Coins: [1, 2, 5]
           </span>
         </div>
@@ -126,7 +126,7 @@ export const DpGridVisualizer: React.FC = () => {
                 <div
                   className={`w-11 h-12 rounded-xl border-2 flex items-center justify-center font-mono text-sm font-bold transition-all duration-300 ${
                     isActive
-                      ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-500/30 scale-110'
+                      ? 'bg-orange-600 text-white border-orange-400 shadow-lg shadow-orange-500/30 scale-110'
                       : isFilled
                       ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700'
                       : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-400 border-zinc-200 dark:border-zinc-800'
@@ -142,7 +142,7 @@ export const DpGridVisualizer: React.FC = () => {
 
         {/* Recurrence Formula Box */}
         <div className="mt-4 w-full p-3 bg-zinc-50 dark:bg-zinc-900/80 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs">
-          <div className="flex items-center justify-between mb-1 text-[11px] font-mono text-indigo-600 dark:text-indigo-400 font-bold">
+          <div className="flex items-center justify-between mb-1 text-[11px] font-mono text-orange-600 dark:text-orange-400 font-bold">
             <span>RECURRENCE TRANSITION</span>
             <span>{currentStep.formula}</span>
           </div>

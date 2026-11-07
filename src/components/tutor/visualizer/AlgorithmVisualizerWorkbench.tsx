@@ -185,7 +185,7 @@ export const AlgorithmVisualizerWorkbench: React.FC<AlgorithmVisualizerWorkbench
             onClick={() => setActiveTab('visualizer')}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all ${
               activeTab === 'visualizer'
-                ? 'bg-white dark:bg-indigo-600 text-indigo-700 dark:text-white font-bold shadow-sm'
+                ? 'bg-orange-600 text-white font-bold shadow-sm'
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
             }`}
           >
@@ -197,7 +197,7 @@ export const AlgorithmVisualizerWorkbench: React.FC<AlgorithmVisualizerWorkbench
             onClick={() => setActiveTab('code')}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all ${
               activeTab === 'code'
-                ? 'bg-white dark:bg-indigo-600 text-indigo-700 dark:text-white font-bold shadow-sm'
+                ? 'bg-orange-600 text-white font-bold shadow-sm'
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
             }`}
           >
@@ -209,7 +209,7 @@ export const AlgorithmVisualizerWorkbench: React.FC<AlgorithmVisualizerWorkbench
             onClick={() => setActiveTab('complexity')}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all ${
               activeTab === 'complexity'
-                ? 'bg-white dark:bg-indigo-600 text-indigo-700 dark:text-white font-bold shadow-sm'
+                ? 'bg-orange-600 text-white font-bold shadow-sm'
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
             }`}
           >
@@ -236,7 +236,7 @@ export const AlgorithmVisualizerWorkbench: React.FC<AlgorithmVisualizerWorkbench
                 onClick={() => setSelectedVisualizer('array')}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border shrink-0 transition-colors ${
                   selectedVisualizer === 'array'
-                    ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-500/40 font-bold'
+                    ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 border-orange-500 font-bold'
                     : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:text-zinc-900 dark:hover:text-white'
                 }`}
               >
@@ -247,7 +247,7 @@ export const AlgorithmVisualizerWorkbench: React.FC<AlgorithmVisualizerWorkbench
                 onClick={() => setSelectedVisualizer('sorting')}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border shrink-0 transition-colors ${
                   selectedVisualizer === 'sorting'
-                    ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-500/40 font-bold'
+                    ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 border-orange-500 font-bold'
                     : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:text-zinc-900 dark:hover:text-white'
                 }`}
               >
@@ -258,7 +258,7 @@ export const AlgorithmVisualizerWorkbench: React.FC<AlgorithmVisualizerWorkbench
                 onClick={() => setSelectedVisualizer('recursion')}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border shrink-0 transition-colors ${
                   selectedVisualizer === 'recursion'
-                    ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-500/40 font-bold'
+                    ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 border-orange-500 font-bold'
                     : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:text-zinc-900 dark:hover:text-white'
                 }`}
               >
@@ -270,7 +270,7 @@ export const AlgorithmVisualizerWorkbench: React.FC<AlgorithmVisualizerWorkbench
                 onClick={() => setSelectedVisualizer('linkedlist')}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border shrink-0 transition-colors ${
                   selectedVisualizer === 'linkedlist'
-                    ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-500/40 font-bold'
+                    ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 border-orange-500 font-bold'
                     : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:text-zinc-900 dark:hover:text-white'
                 }`}
               >
@@ -282,7 +282,7 @@ export const AlgorithmVisualizerWorkbench: React.FC<AlgorithmVisualizerWorkbench
                 onClick={() => setSelectedVisualizer('tree')}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border shrink-0 transition-colors ${
                   selectedVisualizer === 'tree'
-                    ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-500/40 font-bold'
+                    ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 border-orange-500 font-bold'
                     : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:text-zinc-900 dark:hover:text-white'
                 }`}
               >
@@ -294,7 +294,7 @@ export const AlgorithmVisualizerWorkbench: React.FC<AlgorithmVisualizerWorkbench
                 onClick={() => setSelectedVisualizer('dp')}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border shrink-0 transition-colors ${
                   selectedVisualizer === 'dp'
-                    ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-500/40 font-bold'
+                    ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 border-orange-500 font-bold'
                     : 'bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:text-zinc-900 dark:hover:text-white'
                 }`}
               >
@@ -337,10 +337,9 @@ export const AlgorithmVisualizerWorkbench: React.FC<AlgorithmVisualizerWorkbench
                 {onSendCodeToTutor && (
                   <button
                     onClick={() => onSendCodeToTutor(code, codeLanguage)}
-                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono font-semibold bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors shadow-sm"
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono font-bold bg-orange-600 hover:bg-orange-500 text-white rounded-lg transition-colors shadow-sm"
                     title="Send code to Gnani for voice explanation or review"
                   >
-                    <Sparkles className="w-3.5 h-3.5" />
                     <span>Ask Gnani to Inspect</span>
                   </button>
                 )}
@@ -427,14 +426,14 @@ export const AlgorithmVisualizerWorkbench: React.FC<AlgorithmVisualizerWorkbench
                   </tr>
                   <tr>
                     <td className="p-2.5 font-bold">QuickSort</td>
-                    <td className="p-2.5 text-indigo-600 dark:text-indigo-400">O(N log N)</td>
+                    <td className="p-2.5 text-orange-600 dark:text-orange-400">O(N log N)</td>
                     <td className="p-2.5 text-rose-500">O(N^2) [Bad Pivot]</td>
                     <td className="p-2.5">O(log N) stack</td>
                   </tr>
                   <tr>
                     <td className="p-2.5 font-bold">MergeSort</td>
-                    <td className="p-2.5 text-indigo-600 dark:text-indigo-400">O(N log N)</td>
-                    <td className="p-2.5 text-indigo-600 dark:text-indigo-400">O(N log N)</td>
+                    <td className="p-2.5 text-orange-600 dark:text-orange-400">O(N log N)</td>
+                    <td className="p-2.5 text-orange-600 dark:text-orange-400">O(N log N)</td>
                     <td className="p-2.5 text-amber-500">O(N) auxiliary</td>
                   </tr>
                   <tr>
@@ -445,8 +444,8 @@ export const AlgorithmVisualizerWorkbench: React.FC<AlgorithmVisualizerWorkbench
                   </tr>
                   <tr>
                     <td className="p-2.5 font-bold">Graph BFS / DFS</td>
-                    <td className="p-2.5 text-indigo-600 dark:text-indigo-400">O(V + E)</td>
-                    <td className="p-2.5 text-indigo-600 dark:text-indigo-400">O(V + E)</td>
+                    <td className="p-2.5 text-orange-600 dark:text-orange-400">O(V + E)</td>
+                    <td className="p-2.5 text-orange-600 dark:text-orange-400">O(V + E)</td>
                     <td className="p-2.5">O(V)</td>
                   </tr>
                 </tbody>

@@ -202,7 +202,7 @@ export const SortingVisualizer: React.FC = () => {
 
           <button
             onClick={generateNewArray}
-            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg text-zinc-700 dark:text-zinc-300 hover:text-indigo-600 transition-colors shadow-sm"
+            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-mono bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg text-zinc-700 dark:text-zinc-300 hover:text-orange-500 transition-colors shadow-sm"
           >
             <Shuffle className="w-3.5 h-3.5" />
             <span>Shuffle</span>
@@ -221,7 +221,7 @@ export const SortingVisualizer: React.FC = () => {
 
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors shadow-sm"
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono font-semibold bg-orange-600 hover:bg-orange-500 text-white rounded-lg transition-colors shadow-sm"
           >
             {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
             <span>{isPlaying ? 'Pause' : 'Play'}</span>
@@ -258,7 +258,7 @@ export const SortingVisualizer: React.FC = () => {
             const isSwapping = currentStep.swapping.includes(idx);
             const isSorted = currentStep.sorted.includes(idx);
 
-            let barColor = 'bg-indigo-500/80 dark:bg-indigo-500/60 border-indigo-400';
+            let barColor = 'bg-orange-500/70 dark:bg-orange-500/50 border-orange-400';
             if (isSwapping) {
               barColor = 'bg-rose-500 border-rose-400 animate-pulse';
             } else if (isComparing) {
@@ -304,7 +304,7 @@ export const SortingVisualizer: React.FC = () => {
         <div className="mt-3 w-full p-3 bg-zinc-50 dark:bg-zinc-900/80 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs">
           <div className="flex items-center justify-between mb-1 text-[11px] font-mono text-zinc-500 dark:text-zinc-400">
             <span>Step {currentStepIndex + 1} of {steps.length}</span>
-            <span className="font-semibold text-indigo-600 dark:text-indigo-400 uppercase">
+            <span className="font-semibold text-orange-600 dark:text-orange-400 uppercase">
               {currentStep.swapping.length > 0 ? 'SWAP OPERATION' : currentStep.comparing.length > 0 ? 'COMPARISON' : 'INVARIANT CHECK'}
             </span>
           </div>

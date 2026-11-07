@@ -121,7 +121,7 @@ export const LinkedListVisualizer: React.FC = () => {
       <div className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-900/90 rounded-xl border border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
-            <GitCommit className="w-3.5 h-3.5 text-indigo-500" /> Reversing Singly Linked List
+            <GitCommit className="w-3.5 h-3.5 text-orange-500" /> Reversing Singly Linked List
           </span>
           <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
             O(N) Time • O(1) Space
@@ -181,7 +181,7 @@ export const LinkedListVisualizer: React.FC = () => {
                     </span>
                   )}
                   {isCurr && (
-                    <span className="text-[10px] font-mono font-bold text-indigo-500 bg-indigo-100 dark:bg-indigo-950/60 px-1 rounded">
+                    <span className="text-[10px] font-mono font-bold text-orange-500 bg-orange-100 dark:bg-orange-950/60 px-1 rounded">
                       CURR
                     </span>
                   )}
@@ -205,7 +205,7 @@ export const LinkedListVisualizer: React.FC = () => {
 
             let borderStyle = 'border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900';
             if (isCurr) {
-              borderStyle = 'border-indigo-500 bg-indigo-500/10 shadow-md shadow-indigo-500/20 scale-105';
+              borderStyle = 'border-orange-500 bg-orange-500/10 shadow-md shadow-orange-500/20 scale-105';
             } else if (isPrev) {
               borderStyle = 'border-amber-500 bg-amber-500/10';
             }
@@ -235,7 +235,7 @@ export const LinkedListVisualizer: React.FC = () => {
         <div className="mt-4 w-full p-3 bg-zinc-50 dark:bg-zinc-900/80 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs">
           <div className="flex items-center justify-between mb-1 text-[11px] font-mono text-zinc-500 dark:text-zinc-400">
             <span>{currentStep.stepName}</span>
-            <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+            <span className="font-semibold text-orange-600 dark:text-orange-400">
               STEP {currentStepIndex + 1}/{steps.length}
             </span>
           </div>

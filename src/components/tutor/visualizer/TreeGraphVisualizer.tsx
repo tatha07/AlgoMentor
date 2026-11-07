@@ -83,7 +83,7 @@ export const TreeGraphVisualizer: React.FC = () => {
       <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-zinc-50 dark:bg-zinc-900/90 rounded-xl border border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
-            <Network className="w-3.5 h-3.5 text-indigo-500" /> Binary Search Tree (BST)
+            <Network className="w-3.5 h-3.5 text-orange-500" /> Binary Search Tree (BST)
           </span>
 
           <div className="flex items-center gap-1.5 text-xs font-mono">
@@ -100,14 +100,14 @@ export const TreeGraphVisualizer: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={handleRunSearch}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors shadow-sm"
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono font-semibold bg-orange-600 hover:bg-orange-500 text-white rounded-lg transition-colors shadow-sm"
           >
             <Search className="w-3.5 h-3.5" />
             <span>Search</span>
           </button>
           <button
             onClick={handleInorderTraversal}
-            className="px-2.5 py-1.5 text-xs font-mono bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:text-indigo-600 rounded-lg transition-colors"
+            className="px-2.5 py-1.5 text-xs font-mono bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:text-orange-500 rounded-lg transition-colors"
           >
             In-Order (Sorted)
           </button>
@@ -147,8 +147,8 @@ export const TreeGraphVisualizer: React.FC = () => {
               stroke = '#059669';
               textColor = '#ffffff';
             } else if (isVisited) {
-              fill = '#6366f1';
-              stroke = '#4f46e5';
+              fill = '#ea580c';
+              stroke = '#c2410c';
               textColor = '#ffffff';
             }
 

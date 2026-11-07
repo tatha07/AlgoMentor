@@ -11,8 +11,8 @@ export const GNANI_VOICES: Record<GnaniVoiceId, GnaniVoiceConfig> = {
     webSpeechPitch: 1.0,
     badge: 'Standard',
     sampleText: 'Welcome! I am Gnani Classic. Tell me which data structure or algorithm we should break down today.',
-    avatarGradient: 'from-indigo-500 via-indigo-600 to-violet-700',
-    accentColor: 'indigo',
+    avatarGradient: 'from-orange-500 via-amber-600 to-red-600',
+    accentColor: 'orange',
   },
   mentor: {
     id: 'mentor',
@@ -24,7 +24,7 @@ export const GNANI_VOICES: Record<GnaniVoiceId, GnaniVoiceConfig> = {
     webSpeechPitch: 1.06,
     badge: 'Popular',
     sampleText: 'Hey there! DSA can feel daunting, but we will conquer it one insight at a time. What concept are you curious about?',
-    avatarGradient: 'from-emerald-500 via-teal-500 to-cyan-600',
+    avatarGradient: 'from-emerald-500 via-teal-600 to-cyan-700',
     accentColor: 'emerald',
   },
   professor: {
@@ -37,8 +37,8 @@ export const GNANI_VOICES: Record<GnaniVoiceId, GnaniVoiceConfig> = {
     webSpeechPitch: 0.88,
     badge: 'Deep Dive',
     sampleText: 'Greetings. Let us examine the fundamental invariants and asymptotic complexities of your algorithm.',
-    avatarGradient: 'from-blue-600 via-indigo-700 to-slate-800',
-    accentColor: 'blue',
+    avatarGradient: 'from-zinc-700 via-neutral-800 to-zinc-900',
+    accentColor: 'zinc',
   },
   energetic: {
     id: 'energetic',
@@ -50,8 +50,8 @@ export const GNANI_VOICES: Record<GnaniVoiceId, GnaniVoiceConfig> = {
     webSpeechPitch: 1.1,
     badge: 'High Energy',
     sampleText: 'Let’s crush this! From brute-force O(N squared) straight to optimal O(N log N). What are we optimizing today?!',
-    avatarGradient: 'from-amber-500 via-orange-500 to-rose-600',
-    accentColor: 'amber',
+    avatarGradient: 'from-orange-600 via-amber-500 to-yellow-500',
+    accentColor: 'orange',
   },
   calm: {
     id: 'calm',
@@ -63,8 +63,8 @@ export const GNANI_VOICES: Record<GnaniVoiceId, GnaniVoiceConfig> = {
     webSpeechPitch: 0.95,
     badge: 'Relaxed',
     sampleText: 'Take your time. We will walk through every pointer and condition step by step together.',
-    avatarGradient: 'from-violet-500 via-purple-500 to-pink-500',
-    accentColor: 'purple',
+    avatarGradient: 'from-teal-600 via-emerald-600 to-stone-700',
+    accentColor: 'teal',
   },
 };
 

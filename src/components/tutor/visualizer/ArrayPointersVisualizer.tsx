@@ -251,7 +251,7 @@ export const ArrayPointersVisualizer: React.FC<ArrayPointersVisualizerProps> = (
           <button
             onClick={() => setCurrentStepIndex(prev => Math.max(0, prev - 1))}
             disabled={currentStepIndex === 0}
-            className="p-1.5 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:text-indigo-600 disabled:opacity-40"
+            className="p-1.5 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:text-orange-500 disabled:opacity-40"
             title="Step Back"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -259,7 +259,7 @@ export const ArrayPointersVisualizer: React.FC<ArrayPointersVisualizerProps> = (
 
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors shadow-sm"
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono font-bold bg-orange-600 hover:bg-orange-500 text-white rounded-lg transition-colors shadow-sm"
           >
             {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
             <span>{isPlaying ? 'Pause' : 'Play'}</span>
@@ -268,7 +268,7 @@ export const ArrayPointersVisualizer: React.FC<ArrayPointersVisualizerProps> = (
           <button
             onClick={() => setCurrentStepIndex(prev => Math.min(steps.length - 1, prev + 1))}
             disabled={currentStepIndex >= steps.length - 1}
-            className="p-1.5 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:text-indigo-600 disabled:opacity-40"
+            className="p-1.5 rounded-lg bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:text-orange-500 disabled:opacity-40"
             title="Step Forward"
           >
             <ChevronRight className="w-4 h-4" />
@@ -285,7 +285,7 @@ export const ArrayPointersVisualizer: React.FC<ArrayPointersVisualizerProps> = (
       </div>
 
       {/* Visual Array Canvas */}
-      <div className="p-4 md:p-6 bg-white dark:bg-zinc-950 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center min-h-[180px]">
+      <div className="p-4 md:p-6 bg-white dark:bg-[#0c0d0e] rounded-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center min-h-[180px]">
         {/* Pointers Row */}
         <div className="flex items-center justify-center gap-2 mb-2 w-full overflow-x-auto pb-1">
           {initialArray.map((_, idx) => {
@@ -298,7 +298,7 @@ export const ArrayPointersVisualizer: React.FC<ArrayPointersVisualizerProps> = (
                 {isLeft && isRight ? (
                   <span className="text-[10px] font-mono font-bold text-amber-500 bg-amber-100 dark:bg-amber-950/60 px-1 rounded">L&R</span>
                 ) : isMid ? (
-                  <span className="text-[10px] font-mono font-bold text-violet-500 bg-violet-100 dark:bg-violet-950/60 px-1 rounded animate-bounce">MID</span>
+                  <span className="text-[10px] font-mono font-bold text-orange-500 bg-orange-100 dark:bg-orange-950/60 px-1 rounded animate-bounce">MID</span>
                 ) : isLeft ? (
                   <span className="text-[10px] font-mono font-bold text-emerald-500 bg-emerald-100 dark:bg-emerald-950/60 px-1 rounded">L</span>
                 ) : isRight ? (
@@ -320,9 +320,9 @@ export const ArrayPointersVisualizer: React.FC<ArrayPointersVisualizerProps> = (
             if (isFound) {
               cellBg = 'bg-emerald-500 text-white border-emerald-400 shadow-lg shadow-emerald-500/30 scale-105';
             } else if (isMid) {
-              cellBg = 'bg-violet-600 text-white border-violet-400 shadow-md shadow-violet-500/25 scale-105';
+              cellBg = 'bg-orange-600 text-white border-orange-400 shadow-md shadow-orange-500/25 scale-105';
             } else if (isInRange) {
-              cellBg = 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-500/40 font-bold';
+              cellBg = 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-500/40 font-bold';
             }
 
             return (
@@ -342,7 +342,7 @@ export const ArrayPointersVisualizer: React.FC<ArrayPointersVisualizerProps> = (
         <div className="mt-4 w-full p-3 bg-zinc-50 dark:bg-zinc-900/80 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs">
           <div className="flex items-center justify-between mb-1 text-[11px] font-mono text-zinc-500 dark:text-zinc-400">
             <span>Step {currentStepIndex + 1} of {steps.length}</span>
-            <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+            <span className="font-bold text-orange-600 dark:text-orange-400">
               {currentStep.foundIndex !== undefined ? 'TARGET ACQUIRED' : 'ANALYZING INVARIANTS'}
             </span>
           </div>
