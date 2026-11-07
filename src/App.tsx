@@ -44,12 +44,7 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // If unauthenticated: Route directly to sign in first
-  if (!currentUser) {
-    return <AuthGateView />;
-  }
-
-  // Once authenticated: Show the app and user progress
+  // Main active tab router
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'dashboard':
@@ -58,6 +53,8 @@ const AppContent: React.FC = () => {
         return <FiveDayJourneyView />;
       case 'achievements':
         return <AchievementView />;
+      case 'auth':
+        return <AuthGateView />;
       case 'chat':
         return <AiChatView />;
       case 'tracks':

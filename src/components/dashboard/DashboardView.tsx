@@ -1,5 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { DSA_TOPICS } from '../../data/dsaTopics';
 import { ARCHETYPE_PROFILES, FIVE_DAY_CURRICULUM } from '../../data/fiveDayJourneyData';
 import { 
@@ -32,6 +33,8 @@ export const DashboardView: React.FC = () => {
     startAssessment 
   } = useApp();
 
+  const { currentUser, setIsAuthModalOpen, setAuthModalMode } = useAuth();
+
   const currentArchetype = userProfile.coderArchetype || 'intermediate';
   const archetypeInfo = ARCHETYPE_PROFILES[currentArchetype];
   const journey = userProfile.fiveDayJourney;
@@ -63,6 +66,29 @@ export const DashboardView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 transition-colors duration-200">
+      {/* Guest Mode Status Banner */}
+      {!currentUser && (
+        <div className="p-3.5 px-4 rounded-xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-zinc-700 dark:text-zinc-300 font-mono">
+              <strong className="text-zinc-900 dark:text-white">Guest Mode Active:</strong> Your 5-day journey, solved problems, and achievement badges are tracking locally.
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              setAuthModalMode('signup');
+              setIsAuthModalOpen(true);
+            }}
+            id="btn-dash-guest-sync"
+            className="shrink-0 self-start sm:self-auto px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-[11px] font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <span>Sync with Cloud</span>
+            <ArrowRight className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+
       {/* Welcome & Persona Banner */}
       <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-br from-white via-indigo-50/40 to-slate-100 dark:from-zinc-900 dark:via-zinc-900/90 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800 relative overflow-hidden shadow-sm">
         <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />

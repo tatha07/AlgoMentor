@@ -31,7 +31,7 @@ export const AuthGateView: React.FC = () => {
     clearAuthError 
   } = useAuth();
   
-  const { theme, toggleTheme, setJourneyArchetype } = useApp();
+  const { theme, toggleTheme, setJourneyArchetype, setActiveTab } = useApp();
 
   const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>('signin');
   const [email, setEmail] = useState('');
@@ -97,25 +97,37 @@ export const AuthGateView: React.FC = () => {
           </div>
         </div>
 
-        {/* Theme Toggle */}
-        <button
-          onClick={toggleTheme}
-          id="btn-gate-theme-toggle"
-          aria-label="Toggle theme"
-          className="flex items-center gap-2 px-3 py-2 text-xs font-mono font-semibold rounded-lg bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 shadow-sm transition-colors"
-        >
-          {theme === 'dark' ? (
-            <>
-              <Sun className="w-4 h-4 text-amber-400" />
-              <span className="hidden sm:inline">Light Mode</span>
-            </>
-          ) : (
-            <>
-              <Moon className="w-4 h-4 text-indigo-500" />
-              <span className="hidden sm:inline">Dark Mode</span>
-            </>
-          )}
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Explore as Guest */}
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            id="btn-gate-explore-guest"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-mono font-semibold rounded-lg bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 shadow-sm transition-colors cursor-pointer"
+          >
+            <span>Explore as Guest</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            id="btn-gate-theme-toggle"
+            aria-label="Toggle theme"
+            className="flex items-center gap-2 px-3 py-2 text-xs font-mono font-semibold rounded-lg bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 shadow-sm transition-colors cursor-pointer"
+          >
+            {theme === 'dark' ? (
+              <>
+                <Sun className="w-4 h-4 text-amber-400" />
+                <span className="hidden sm:inline">Light Mode</span>
+              </>
+            ) : (
+              <>
+                <Moon className="w-4 h-4 text-indigo-500" />
+                <span className="hidden sm:inline">Dark Mode</span>
+              </>
+            )}
+          </button>
+        </div>
       </header>
 
       {/* Hero & Auth Card Section */}
@@ -497,6 +509,19 @@ export const AuthGateView: React.FC = () => {
                     </button>
                   </p>
                 )}
+              </div>
+
+              {/* Guest Exploration Option */}
+              <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800/60 text-center">
+                <button
+                  type="button"
+                  id="btn-gate-continue-guest-card"
+                  onClick={() => setActiveTab('dashboard')}
+                  className="w-full py-2 px-3 rounded-lg text-xs font-mono font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-950/60 dark:hover:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <span>Skip to Workspace (Guest Mode)</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-zinc-400" />
+                </button>
               </div>
             </div>
           </div>

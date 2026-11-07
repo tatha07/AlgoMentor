@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Editor, { OnMount } from '@monaco-editor/react';
 import { 
   Play, 
@@ -9,11 +9,14 @@ import {
   Clock, 
   CheckCircle2, 
   XCircle, 
-  Settings2,
-  Maximize2,
-  Minimize2,
-  Sparkles,
-  Loader2
+  Maximize2, 
+  Minimize2, 
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  X,
+  AlertCircle,
+  Code2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -21,7 +24,7 @@ export interface CodeExecutionResult {
   stdout: string;
   stderr?: string;
   executionTimeMs: number;
-  status: 'success' | 'error' | 'timeout';
+  status: 'success' | 'error' | 'timeout' | 'wrong_answer';
   testResults?: {
     testCaseIndex: number;
     input: string;
@@ -62,13 +65,34 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [fontSize, setFontSize] = useState<number>(13);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  
+  // Console state
   const [executionResult, setExecutionResult] = useState<CodeExecutionResult | null>(null);
-  const [activeOutputTab, setActiveOutputTab] = useState<'console' | 'tests'>('console');
+  const [isConsoleOpen, setIsConsoleOpen] = useState<boolean>(false);
+  const [isConsoleCollapsed, setIsConsoleCollapsed] = useState<boolean>(false);
+  const [isConsoleExpanded, setIsConsoleExpanded] = useState<boolean>(false);
+  const [activeOutputTab, setActiveOutputTab] = useState<'tests' | 'console'>('tests');
+  const [selectedTestCaseIndex, setSelectedTestCaseIndex] = useState<number>(0);
+  const [viewAllCases, setViewAllCases] = useState<boolean>(false);
 
-  // Keep internal code updated if initialCode changes externally (e.g. switching problems or languages)
-  React.useEffect(() => {
+  // Keep internal code updated if initialCode changes externally
+  useEffect(() => {
     setCode(initialCode);
   }, [initialCode]);
+
+  // Handle Ctrl+Enter or Cmd+Enter to run code
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        if (!readOnly && !isRunning) {
+          handleExecute();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [code, language, readOnly, isRunning]);
 
   const handleEditorChange = (value: string | undefined) => {
     const newCode = value || '';
@@ -93,11 +117,8 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
     }
   };
 
-  // Safe client/server sandboxed execution fallback
   const handleExecute = async () => {
     setIsRunning(true);
-    setExecutionResult(null);
-
     const startTime = performance.now();
 
     try {
@@ -105,12 +126,21 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
         const customResult = await onRun(code, language);
         if (customResult) {
           setExecutionResult(customResult);
+          setIsConsoleOpen(true);
+          setIsConsoleCollapsed(false);
+          if (customResult.testResults && customResult.testResults.length > 0) {
+            setActiveOutputTab('tests');
+            const firstFail = customResult.testResults.findIndex(t => !t.passed);
+            setSelectedTestCaseIndex(firstFail >= 0 ? firstFail : 0);
+          } else {
+            setActiveOutputTab('console');
+          }
           setIsRunning(false);
           return;
         }
       }
 
-      // Default backend/client sandbox runner
+      // Default sandbox runner
       const res = await fetch('/api/sandbox/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -126,15 +156,22 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
       const endTime = performance.now();
 
       if (res.ok) {
-        setExecutionResult({
+        const result: CodeExecutionResult = {
           stdout: data.stdout || 'Program executed successfully with no stdout.',
           stderr: data.stderr,
           executionTimeMs: data.executionTimeMs || Math.round(endTime - startTime),
           status: data.status || 'success',
           testResults: data.testResults,
-        });
+        };
+        setExecutionResult(result);
+        setIsConsoleOpen(true);
+        setIsConsoleCollapsed(false);
         if (data.testResults && data.testResults.length > 0) {
           setActiveOutputTab('tests');
+          const firstFail = data.testResults.findIndex((t: any) => !t.passed);
+          setSelectedTestCaseIndex(firstFail >= 0 ? firstFail : 0);
+        } else {
+          setActiveOutputTab('console');
         }
       } else {
         setExecutionResult({
@@ -143,64 +180,59 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
           executionTimeMs: Math.round(endTime - startTime),
           status: 'error',
         });
+        setIsConsoleOpen(true);
+        setIsConsoleCollapsed(false);
+        setActiveOutputTab('console');
       }
     } catch (err: any) {
-      // Local fallback for JavaScript execution if network fails
-      if (language === 'javascript') {
-        try {
-          const logs: string[] = [];
-          const customConsole = {
-            log: (...args: any[]) => logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')),
-            error: (...args: any[]) => logs.push('[ERROR] ' + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')),
-            warn: (...args: any[]) => logs.push('[WARN] ' + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')),
-          };
-
-          const runFn = new Function('console', code);
-          runFn(customConsole);
-
-          const endTime = performance.now();
-          setExecutionResult({
-            stdout: logs.length > 0 ? logs.join('\n') : 'Code executed cleanly with no console output.',
-            executionTimeMs: Math.round(endTime - startTime),
-            status: 'success',
-          });
-        } catch (execErr: any) {
-          const endTime = performance.now();
-          setExecutionResult({
-            stdout: '',
-            stderr: execErr.toString(),
-            executionTimeMs: Math.round(endTime - startTime),
-            status: 'error',
-          });
-        }
-      } else {
-        const endTime = performance.now();
-        setExecutionResult({
-          stdout: '',
-          stderr: `Execution server is offline. Local interpreter is currently enabled for JavaScript. For ${language}, syntax checking is active.`,
-          executionTimeMs: Math.round(endTime - startTime),
-          status: 'error',
-        });
-      }
+      const endTime = performance.now();
+      setExecutionResult({
+        stdout: '',
+        stderr: err?.message || 'Could not connect to sandbox runner.',
+        executionTimeMs: Math.round(endTime - startTime),
+        status: 'error',
+      });
+      setIsConsoleOpen(true);
+      setIsConsoleCollapsed(false);
+      setActiveOutputTab('console');
     } finally {
       setIsRunning(false);
     }
   };
 
-  const monacoLanguage = language === 'cpp' ? 'cpp' : language === 'python' ? 'python' : language === 'java' ? 'java' : 'javascript';
+  const monacoLanguage = 
+    language === 'cpp' ? 'cpp' : 
+    language === 'python' ? 'python' : 
+    language === 'java' ? 'java' : 'javascript';
+
+  const isHeight100 = height === '100%' || height?.includes('100%');
+
+  // Test statistics
+  const testResults = executionResult?.testResults || [];
+  const totalTests = testResults.length;
+  const passedTests = testResults.filter(t => t.passed).length;
+  const allTestsPassed = totalTests > 0 && passedTests === totalTests;
+  const hasTestFailures = totalTests > 0 && !allTestsPassed;
+  const isRuntimeError = executionResult?.status === 'error' || Boolean(executionResult?.stderr);
+
+  // Selected test case
+  const currentCase = testResults[selectedTestCaseIndex] || testResults[0];
 
   return (
-    <div className={`flex flex-col border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-950 shadow-sm transition-colors duration-200 ${isFullscreen ? 'fixed inset-4 z-50 shadow-2xl' : ''}`}>
-      
+    <div 
+      className={`flex flex-col border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-950 shadow-sm transition-all duration-200 ${
+        isFullscreen ? 'fixed inset-4 z-50 shadow-2xl' : isHeight100 ? 'h-full flex-1' : ''
+      }`}
+    >
       {/* Top Toolbar */}
-      <div className="flex flex-wrap items-center justify-between px-4 py-2.5 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 gap-2">
+      <div className="flex flex-wrap items-center justify-between px-3.5 py-2 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 gap-2 shrink-0 select-none">
         {/* Left: Language selector & info */}
         <div className="flex items-center gap-2">
           {onLanguageChange ? (
             <select
               value={language}
               onChange={(e) => onLanguageChange(e.target.value as any)}
-              className="bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700/80 text-zinc-800 dark:text-zinc-200 text-xs font-mono rounded-lg px-2.5 py-1 focus:outline-none focus:border-indigo-500 font-semibold shadow-sm"
+              className="bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700/80 text-zinc-800 dark:text-zinc-200 text-xs font-mono rounded-lg px-2.5 py-1 focus:outline-none focus:border-indigo-500 font-semibold shadow-xs"
             >
               <option value="javascript">JavaScript (Node.js)</option>
               <option value="python">Python 3</option>
@@ -214,14 +246,34 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
           )}
 
           <span className="text-[11px] font-mono text-zinc-500 hidden sm:inline">
-            Monaco Engine
+            Monaco Editor
           </span>
         </div>
 
         {/* Right: Actions */}
         <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Toggle Console Output */}
+          <button
+            onClick={() => {
+              setIsConsoleOpen(!isConsoleOpen);
+              if (!isConsoleOpen) setIsConsoleCollapsed(false);
+            }}
+            title={isConsoleOpen ? 'Hide Console' : 'Show Console'}
+            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-mono font-medium transition-colors border ${
+              isConsoleOpen
+                ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/30'
+                : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 border-transparent'
+            }`}
+          >
+            <Terminal className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Console</span>
+            {executionResult && (
+              <span className={`w-1.5 h-1.5 rounded-full ${allTestsPassed ? 'bg-emerald-500' : hasTestFailures || isRuntimeError ? 'bg-rose-500' : 'bg-indigo-500'}`} />
+            )}
+          </button>
+
           {/* Font size toggle */}
-          <div className="hidden sm:flex items-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg p-0.5 text-[11px] font-mono text-zinc-600 dark:text-zinc-400 shadow-sm">
+          <div className="hidden sm:flex items-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg p-0.5 text-[11px] font-mono text-zinc-600 dark:text-zinc-400 shadow-xs">
             <button
               onClick={() => setFontSize(Math.max(11, fontSize - 1))}
               className="px-1.5 py-0.5 hover:text-zinc-900 dark:hover:text-white"
@@ -274,7 +326,8 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
               onClick={handleExecute}
               disabled={isRunning}
               id="btn-run-code"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-md shadow-sm shadow-emerald-600/30 transition-all border border-emerald-500/40 disabled:opacity-50"
+              title="Run Code (Ctrl+Enter)"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg shadow-sm shadow-emerald-600/30 transition-all border border-emerald-500/40 disabled:opacity-50 cursor-pointer"
             >
               {isRunning ? (
                 <>
@@ -293,7 +346,16 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
       </div>
 
       {/* Monaco Editor Container */}
-      <div style={{ height: isFullscreen ? 'calc(100vh - 260px)' : height }} className="w-full relative">
+      <div 
+        className="w-full relative flex-1 min-h-[160px]"
+        style={
+          isFullscreen 
+            ? { height: isConsoleOpen ? (isConsoleExpanded ? 'calc(100vh - 460px)' : 'calc(100vh - 340px)') : 'calc(100vh - 60px)' }
+            : !isHeight100 
+            ? { height: isConsoleOpen ? (isConsoleExpanded ? '200px' : '260px') : height } 
+            : undefined
+        }
+      >
         <Editor
           height="100%"
           language={monacoLanguage}
@@ -311,118 +373,326 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
             readOnly: readOnly,
             cursorBlinking: 'smooth',
             smoothScrolling: true,
-            padding: { top: 12, bottom: 12 },
+            padding: { top: 10, bottom: 10 },
           }}
         />
       </div>
 
       {/* Output / Terminal / Test Results Console */}
-      {executionResult && (
-        <div className="border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/95 flex flex-col max-h-56 overflow-hidden">
-          {/* Console Header Tabs */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-950/80 text-xs font-mono">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setActiveOutputTab('console')}
-                className={`flex items-center gap-1.5 pb-0.5 border-b-2 font-semibold transition-colors ${
-                  activeOutputTab === 'console'
-                    ? 'border-indigo-500 text-zinc-900 dark:text-white'
-                    : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
-                }`}
-              >
-                <Terminal className="w-3.5 h-3.5" />
-                <span>Console Output</span>
-              </button>
-
-              {executionResult.testResults && executionResult.testResults.length > 0 && (
+      {isConsoleOpen && (
+        <div className="border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/95 flex flex-col shrink-0 transition-all duration-200">
+          {/* Console Header Tabs & Status Bar */}
+          <div className="flex items-center justify-between px-3 sm:px-4 py-2 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-xs font-mono select-none">
+            {/* Left: Tab switchers */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              {totalTests > 0 && (
                 <button
-                  onClick={() => setActiveOutputTab('tests')}
-                  className={`flex items-center gap-1.5 pb-0.5 border-b-2 font-semibold transition-colors ${
-                    activeOutputTab === 'tests'
+                  type="button"
+                  onClick={() => {
+                    setActiveOutputTab('tests');
+                    setIsConsoleCollapsed(false);
+                  }}
+                  className={`flex items-center gap-1.5 pb-1 border-b-2 font-semibold text-xs transition-colors cursor-pointer ${
+                    activeOutputTab === 'tests' && !isConsoleCollapsed
                       ? 'border-indigo-500 text-zinc-900 dark:text-white'
-                      : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+                      : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
                   }`}
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                  {allTestsPassed ? (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                  ) : hasTestFailures ? (
+                    <XCircle className="w-3.5 h-3.5 text-rose-500" />
+                  ) : (
+                    <Code2 className="w-3.5 h-3.5 text-zinc-400" />
+                  )}
                   <span>
-                    Test Cases (
-                    {executionResult.testResults.filter(t => t.passed).length}/{executionResult.testResults.length})
+                    Test Cases ({passedTests}/{totalTests})
                   </span>
                 </button>
               )}
-            </div>
 
-            <div className="flex items-center gap-3 text-[11px] text-zinc-500 dark:text-zinc-400">
-              <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {executionResult.executionTimeMs}ms
-              </span>
-              <span
-                className={`px-2 py-0.5 rounded font-bold uppercase text-[10px] ${
-                  executionResult.status === 'success'
-                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20'
-                    : 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20'
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveOutputTab('console');
+                  setIsConsoleCollapsed(false);
+                }}
+                className={`flex items-center gap-1.5 pb-1 border-b-2 font-semibold text-xs transition-colors cursor-pointer ${
+                  activeOutputTab === 'console' && !isConsoleCollapsed
+                    ? 'border-indigo-500 text-zinc-900 dark:text-white'
+                    : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
                 }`}
               >
-                {executionResult.status === 'success' ? 'Accepted' : 'Error'}
-              </span>
+                <Terminal className="w-3.5 h-3.5 text-indigo-500" />
+                <span>Console Output</span>
+                {executionResult?.stderr && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                )}
+              </button>
+            </div>
+
+            {/* Right: Runtime stats, Status badge & Control buttons */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {executionResult && (
+                <>
+                  <span className="hidden sm:flex items-center gap-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+                    <Clock className="w-3 h-3 text-zinc-400" />
+                    <span>{executionResult.executionTimeMs}ms</span>
+                  </span>
+
+                  {/* Accurate Status Badge */}
+                  {isRuntimeError ? (
+                    <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold uppercase text-[10px] bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30">
+                      <XCircle className="w-3 h-3 text-rose-500 shrink-0" />
+                      <span>Runtime Error</span>
+                    </span>
+                  ) : hasTestFailures ? (
+                    <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold uppercase text-[10px] bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30">
+                      <XCircle className="w-3 h-3 text-rose-500 shrink-0" />
+                      <span>Wrong Answer ({passedTests}/{totalTests})</span>
+                    </span>
+                  ) : allTestsPassed ? (
+                    <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold uppercase text-[10px] bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
+                      <span>Accepted ({passedTests}/{totalTests})</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold uppercase text-[10px] bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
+                      <Check className="w-3 h-3 text-emerald-500 shrink-0" />
+                      <span>Finished</span>
+                    </span>
+                  )}
+                </>
+              )}
+
+              {/* Expand / Minimize Console */}
+              <button
+                type="button"
+                onClick={() => setIsConsoleExpanded(!isConsoleExpanded)}
+                title={isConsoleExpanded ? 'Restore Normal Height' : 'Expand Console Height'}
+                className="p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded transition-colors hidden sm:block"
+              >
+                {isConsoleExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+              </button>
+
+              {/* Collapse Toggle */}
+              <button
+                type="button"
+                onClick={() => setIsConsoleCollapsed(!isConsoleCollapsed)}
+                title={isConsoleCollapsed ? 'Expand Console Body' : 'Collapse Console Body'}
+                className="p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded transition-colors"
+              >
+                {isConsoleCollapsed ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+
+              {/* Close Console */}
+              <button
+                type="button"
+                onClick={() => setIsConsoleOpen(false)}
+                title="Dismiss Console"
+                className="p-1 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
 
-          {/* Console Content */}
-          <div className="p-4 overflow-y-auto font-mono text-xs max-h-44 space-y-2 bg-white dark:bg-zinc-900/95">
-            {activeOutputTab === 'console' && (
-              <>
-                {executionResult.stderr ? (
-                  <pre className="text-rose-600 dark:text-rose-400 whitespace-pre-wrap leading-relaxed">
-                    {executionResult.stderr}
-                  </pre>
-                ) : (
-                  <pre className="text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed">
-                    {executionResult.stdout || 'Program executed cleanly with no stdout.'}
-                  </pre>
-                )}
-              </>
-            )}
+          {/* Console Content Body */}
+          {!isConsoleCollapsed && (
+            <div 
+              className={`p-4 overflow-y-auto font-mono text-xs bg-zinc-50/50 dark:bg-zinc-950/90 transition-all ${
+                isConsoleExpanded ? 'h-[320px]' : 'h-[230px]'
+              }`}
+            >
+              {/* TAB 1: TEST CASES VIEW */}
+              {activeOutputTab === 'tests' && (
+                <div>
+                  {testResults.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-center text-zinc-400">
+                      <Code2 className="w-8 h-8 mb-2 opacity-40" />
+                      <p className="text-xs">No test cases executed yet.</p>
+                      <p className="text-[11px] text-zinc-500 mt-0.5">Click "Run Code" above to evaluate test cases.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3.5">
+                      {/* Case selector tabs */}
+                      <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-2.5">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          {testResults.map((tc, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => {
+                                setSelectedTestCaseIndex(idx);
+                                setViewAllCases(false);
+                              }}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+                                !viewAllCases && selectedTestCaseIndex === idx
+                                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white font-bold shadow-xs border border-zinc-300 dark:border-zinc-700'
+                                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60'
+                              }`}
+                            >
+                              <span 
+                                className={`w-2 h-2 rounded-full shrink-0 ${
+                                  tc.passed ? 'bg-emerald-500' : 'bg-rose-500'
+                                }`} 
+                              />
+                              <span>Case {idx + 1}</span>
+                            </button>
+                          ))}
+                        </div>
 
-            {activeOutputTab === 'tests' && executionResult.testResults && (
-              <div className="space-y-2">
-                {executionResult.testResults.map((t, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-3 rounded-lg border flex flex-col md:flex-row md:items-center justify-between gap-2 ${
-                      t.passed
-                        ? 'bg-emerald-500/5 border-emerald-500/30 text-zinc-200'
-                        : 'bg-rose-500/5 border-rose-500/30 text-zinc-200'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {t.passed ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                      ) : (
-                        <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                        <button
+                          type="button"
+                          onClick={() => setViewAllCases(!viewAllCases)}
+                          className={`text-[11px] font-mono px-2 py-1 rounded transition-colors hidden sm:inline-block ${
+                            viewAllCases
+                              ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-bold'
+                              : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
+                          }`}
+                        >
+                          {viewAllCases ? 'Single Case View' : 'View All Cases'}
+                        </button>
+                      </div>
+
+                      {/* View Single Active Case */}
+                      {!viewAllCases && currentCase && (
+                        <div className="space-y-3">
+                          {/* Case Verdict Header */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              {currentCase.passed ? (
+                                <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                  <span>Test Case #{currentCase.testCaseIndex + 1}: Passed</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-bold text-xs">
+                                  <XCircle className="w-4 h-4 text-rose-500" />
+                                  <span>Test Case #{currentCase.testCaseIndex + 1}: Wrong Answer</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Input Block */}
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-mono uppercase font-bold text-zinc-500 dark:text-zinc-400">
+                              Input Arguments
+                            </span>
+                            <pre className="p-2.5 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-200 overflow-x-auto whitespace-pre-wrap leading-relaxed">
+                              {currentCase.input}
+                            </pre>
+                          </div>
+
+                          {/* Output Comparison Grid */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <span className="text-[10px] font-mono uppercase font-bold text-zinc-500 dark:text-zinc-400">
+                                Your Output
+                              </span>
+                              <pre 
+                                className={`p-2.5 rounded-lg border text-xs overflow-x-auto whitespace-pre-wrap leading-relaxed ${
+                                  currentCase.passed
+                                    ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
+                                    : 'bg-rose-50/60 dark:bg-rose-950/20 border-rose-300 dark:border-rose-500/30 text-rose-700 dark:text-rose-400 font-bold'
+                                }`}
+                              >
+                                {currentCase.actual}
+                              </pre>
+                            </div>
+
+                            <div className="space-y-1">
+                              <span className="text-[10px] font-mono uppercase font-bold text-zinc-500 dark:text-zinc-400">
+                                Expected Output
+                              </span>
+                              <pre className="p-2.5 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-emerald-700 dark:text-emerald-400 font-semibold overflow-x-auto whitespace-pre-wrap leading-relaxed">
+                                {currentCase.expected}
+                              </pre>
+                            </div>
+                          </div>
+                        </div>
                       )}
-                      <span className="font-bold text-xs">Test Case #{t.testCaseIndex + 1}:</span>
-                      <span className="text-zinc-400 text-[11px] truncate max-w-[200px]">Input: {t.input}</span>
-                    </div>
 
-                    <div className="flex items-center gap-3 text-xs">
-                      <div>
-                        <span className="text-zinc-500 mr-1">Expected:</span>
-                        <code className="text-emerald-400">{t.expected}</code>
-                      </div>
-                      <div>
-                        <span className="text-zinc-500 mr-1">Output:</span>
-                        <code className={t.passed ? 'text-emerald-400' : 'text-rose-400'}>{t.actual}</code>
-                      </div>
+                      {/* View All Cases Stash */}
+                      {viewAllCases && (
+                        <div className="space-y-2.5">
+                          {testResults.map((tc, idx) => (
+                            <div
+                              key={idx}
+                              className={`p-3 rounded-lg border flex flex-col md:flex-row md:items-center justify-between gap-3 ${
+                                tc.passed
+                                  ? 'bg-emerald-500/5 border-emerald-500/30'
+                                  : 'bg-rose-500/5 border-rose-500/30'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                {tc.passed ? (
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                                ) : (
+                                  <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                                )}
+                                <span className="font-bold text-xs text-zinc-900 dark:text-white">Case #{tc.testCaseIndex + 1}:</span>
+                                <span className="text-zinc-500 dark:text-zinc-400 text-xs truncate max-w-[240px]">
+                                  {tc.input}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-4 text-xs">
+                                <div>
+                                  <span className="text-zinc-500 mr-1 text-[11px]">Expected:</span>
+                                  <code className="text-emerald-500 font-semibold">{tc.expected}</code>
+                                </div>
+                                <div>
+                                  <span className="text-zinc-500 mr-1 text-[11px]">Output:</span>
+                                  <code className={tc.passed ? 'text-emerald-500 font-semibold' : 'text-rose-500 font-bold'}>
+                                    {tc.actual}
+                                  </code>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
+                  )}
+                </div>
+              )}
+
+              {/* TAB 2: CONSOLE OUTPUT (STDOUT / STDERR) */}
+              {activeOutputTab === 'console' && (
+                <div className="space-y-3">
+                  {executionResult?.stderr && (
+                    <div className="p-3 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 space-y-1">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>Execution Error</span>
+                      </div>
+                      <pre className="text-xs whitespace-pre-wrap leading-relaxed font-mono overflow-x-auto">
+                        {executionResult.stderr}
+                      </pre>
+                    </div>
+                  )}
+
+                  <div className="p-3 rounded-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800/80 space-y-1.5">
+                    <div className="text-[10px] font-mono text-zinc-500 flex items-center justify-between">
+                      <span>Standard Output (stdout)</span>
+                      {executionResult && (
+                        <span>Execution: {executionResult.executionTimeMs}ms</span>
+                      )}
+                    </div>
+                    <pre className="text-xs text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed font-mono overflow-x-auto">
+                      {executionResult?.stdout || 'No console output logged. Tip: Use console.log() or print() to inspect variables.'}
+                    </pre>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 };
+
+export default MonacoCodeEditor;

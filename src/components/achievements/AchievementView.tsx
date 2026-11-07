@@ -35,7 +35,7 @@ export const AchievementView: React.FC = () => {
     syncAchievementsWithFirestore 
   } = useApp();
 
-  const { currentUser } = useAuth();
+  const { currentUser, setIsAuthModalOpen, setAuthModalMode } = useAuth();
 
   const [activeFilter, setActiveFilter] = useState<'all' | 'modules' | 'archetypes' | 'unlocked' | 'locked'>('all');
   const [selectedBadge, setSelectedBadge] = useState<JourneyBadge | null>(null);
@@ -61,6 +61,13 @@ export const AchievementView: React.FC = () => {
   });
 
   const handleSyncWithFirestore = async () => {
+    if (!currentUser) {
+      setSyncFeedback('Sign in to connect and persist your achievements to your Cloud Firestore profile!');
+      setAuthModalMode('signin');
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     setIsSyncing(true);
     setSyncFeedback(null);
     try {

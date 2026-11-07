@@ -62,7 +62,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Sync with Firebase Auth state
   useEffect(() => {
+    // Guarantee loading finishes even if Firebase Auth is slow/offline
+    const fallbackTimer = setTimeout(() => {
+      setLoading(false);
+    }, 600);
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      clearTimeout(fallbackTimer);
       if (firebaseUser) {
         const appUser: AppUser = {
           uid: firebaseUser.uid,
