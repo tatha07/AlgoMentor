@@ -5,7 +5,19 @@ import { Navbar } from './components/layout/Navbar';
 import { GnaniTutorView } from './components/tutor/GnaniTutorView';
 import { PracticeArenaView } from './components/practice/PracticeArenaView';
 import { AssessmentArenaView } from './components/assessment/AssessmentArenaView';
+import { CollabRoomsView } from './components/collab/CollabRoomsView';
+import { DashboardView } from './components/dashboard/DashboardView';
+import { FiveDayJourneyView } from './components/journey/FiveDayJourneyView';
+import { AchievementView } from './components/achievements/AchievementView';
+import { LearningTracksView } from './components/tracks/LearningTracksView';
+import { InterviewModeView } from './components/interview/InterviewModeView';
+import { CodeExplainerView } from './components/code-explainer/CodeExplainerView';
+import { RoadmapView } from './components/roadmap/RoadmapView';
+import { ResourcesView } from './components/resources/ResourcesView';
+import { AiChatView } from './components/chat/AiChatView';
 import { AuthModal } from './components/auth/AuthModal';
+import { AssessmentModal } from './components/assessment/AssessmentModal';
+import { MobileNav } from './components/layout/MobileNav';
 import { Flame } from 'lucide-react';
 
 const AppContent: React.FC = () => {
@@ -22,7 +34,7 @@ const AppContent: React.FC = () => {
           </div>
           <div className="text-center space-y-1">
             <h2 className="text-base font-bold font-mono tracking-tight text-zinc-900 dark:text-white uppercase">
-              Gnani<span className="text-orange-600">.</span>
+              AlgoMentor<span className="text-orange-600">.</span>
             </h2>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
               Loading your high-energy DSA workspace...
@@ -33,13 +45,34 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // Focused 3-Arena Router: Tutor, Practice, Assessment
+  // Full 10-Arena Router
   const renderActiveArena = () => {
     switch (activeTab) {
       case 'practice':
         return <PracticeArenaView />;
       case 'assessment':
         return <AssessmentArenaView />;
+      case 'collab':
+      case 'rooms':
+        return <CollabRoomsView />;
+      case 'dashboard':
+        return <DashboardView />;
+      case 'journey':
+        return <FiveDayJourneyView />;
+      case 'achievements':
+        return <AchievementView />;
+      case 'tracks':
+        return <LearningTracksView />;
+      case 'interview':
+        return <InterviewModeView />;
+      case 'code-explainer':
+        return <CodeExplainerView />;
+      case 'roadmap':
+        return <RoadmapView />;
+      case 'resources':
+        return <ResourcesView />;
+      case 'chat':
+        return <AiChatView />;
       case 'tutor':
       default:
         return <GnaniTutorView />;
@@ -52,7 +85,7 @@ const AppContent: React.FC = () => {
       <Navbar />
 
       {/* Main Arena Workspace (Full width, no bloated sidebars) */}
-      <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 bg-[#fafafa] dark:bg-[#0c0d0e] transition-colors duration-200">
+      <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 pb-20 md:pb-8 bg-[#fafafa] dark:bg-[#0c0d0e] transition-colors duration-200">
         <div className="max-w-7xl mx-auto">
           {renderActiveArena()}
         </div>
@@ -60,6 +93,12 @@ const AppContent: React.FC = () => {
 
       {/* Global Auth Modal */}
       <AuthModal />
+
+      {/* Global Diagnostic Assessment Modal */}
+      <AssessmentModal />
+
+      {/* Mobile Bottom Navigation */}
+      <MobileNav />
     </div>
   );
 };

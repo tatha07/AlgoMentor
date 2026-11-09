@@ -67,7 +67,7 @@ export const CollabRoomsView: React.FC = () => {
   const [messages, setMessages] = useState<CollabMessage[]>([]);
   const [chatInput, setChatInput] = useState<string>('');
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'problem' | 'chat'>('chat');
+  const [sidePanelTab, setSidePanelTab] = useState<'problem' | 'chat'>('chat');
 
   // Create room modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
@@ -571,9 +571,9 @@ export const CollabRoomsView: React.FC = () => {
           {/* Tabs */}
           <div className="flex items-center border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/80 p-1">
             <button
-              onClick={() => setActiveTab('problem')}
+              onClick={() => setSidePanelTab('problem')}
               className={`flex-1 py-1.5 text-xs font-mono font-bold rounded-lg flex items-center justify-center gap-1.5 transition-colors ${
-                activeTab === 'problem'
+                sidePanelTab === 'problem'
                   ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
                   : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
@@ -582,9 +582,9 @@ export const CollabRoomsView: React.FC = () => {
               <span>Problem Specs</span>
             </button>
             <button
-              onClick={() => setActiveTab('chat')}
+              onClick={() => setSidePanelTab('chat')}
               className={`flex-1 py-1.5 text-xs font-mono font-bold rounded-lg flex items-center justify-center gap-1.5 transition-colors ${
-                activeTab === 'chat'
+                sidePanelTab === 'chat'
                   ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
                   : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
@@ -595,7 +595,7 @@ export const CollabRoomsView: React.FC = () => {
           </div>
 
           {/* Problem Specs View */}
-          {activeTab === 'problem' && (
+          {sidePanelTab === 'problem' && (
             <div className="p-4 overflow-y-auto flex-1 space-y-4 text-xs font-mono text-zinc-700 dark:text-zinc-300">
               <div className="flex items-center justify-between">
                 <span className="text-zinc-500 dark:text-zinc-400">Switch Problem:</span>
@@ -648,7 +648,7 @@ export const CollabRoomsView: React.FC = () => {
           )}
 
           {/* Room Live Chat View */}
-          {activeTab === 'chat' && (
+          {sidePanelTab === 'chat' && (
             <div className="flex flex-col flex-1 overflow-hidden">
               {/* Message History */}
               <div className="flex-1 p-3 overflow-y-auto space-y-2.5 text-xs font-mono">
