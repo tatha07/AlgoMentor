@@ -53,7 +53,7 @@ export const GnaniTutorView: React.FC = () => {
   });
 
   // Teaching Mode (Learn, Solve, Hint, Interview, Revision)
-  const [teachingMode, setTeachingMode] = useState<TeachingMode>('learn');
+  const [teachingMode, setTeachingMode] = useState<TeachingMode>('doubt');
 
   // Voice Modal
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
@@ -140,8 +140,8 @@ What concept or LeetCode problem are we tackling right now?`,
     const rawQuery = textToSend || inputText;
     if (!rawQuery.trim() || isLoading) return;
 
-    speechEngine.unlockAudio();
     speechEngine.interrupt();
+    speechEngine.unlockAudio();
 
     const userMsgText = rawQuery.trim();
     const userMessage: ChatMessage = {
@@ -309,6 +309,16 @@ What concept or LeetCode problem are we tackling right now?`,
         </div>
       </div>
 
+      {playbackState.fallbackNotice && (
+        <div
+          role="status"
+          className="flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300"
+        >
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{playbackState.fallbackNotice}</span>
+        </div>
+      )}
+
       {/* Main Responsive Grid Layout */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 min-h-0 overflow-hidden">
         {/* Left Pane: Conversational Voice Tutor OR Doubts Area (Col 6 or 12) */}
@@ -467,13 +477,6 @@ What concept or LeetCode problem are we tackling right now?`,
                     </div>
                   );
                 })}
-                    <div className="w-8 h-8 rounded-lg bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 flex items-center justify-center text-zinc-700 dark:text-zinc-300 shrink-0 mt-0.5 font-mono text-xs font-bold">
-                      U
-                    </div>
-                  )}
-                </div>
-              );
-            })}
 
             {/* Live Interim Speech Bubble as User Speaks */}
             {isListening && interimTranscript && (
@@ -598,6 +601,8 @@ What concept or LeetCode problem are we tackling right now?`,
               </button>
             </div>
           </div>
+            </>
+          )}
         </div>
 
         {/* Right Pane: Visual Learning & Code Workbench (Col 6) */}

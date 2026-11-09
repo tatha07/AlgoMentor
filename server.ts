@@ -590,13 +590,23 @@ app.post('/api/tutor/chat', async (req: Request, res: Response) => {
     const status = error?.status || error?.error?.code;
     if (status === 503 || status === 429) {
       res.status(503).json({
-        error: 'Gnani is experiencing high demand right now. Please try again in a moment.',
+        error: 'Gemini is experiencing high demand right now. Please try again in a moment.',
         details: error?.message,
       });
       return;
     }
-    res.status(500).json({
-      error: 'Failed to process AI tutor request. Please verify GEMINI_API_KEY in settings.',
+    const errorMessage = error instanceof Error ? error.message : '';
+    const missingApiKey = errorMessage.includes('GEMINI_API_KEY is not set');
+    const isAccessError = status === 401 || status === 403;
+    const isModelError = status === 404;
+    res.status(isAccessError ? 502 : 500).json({
+      error: missingApiKey
+        ? 'GEMINI_API_KEY is missing. Add it to .env and restart the server.'
+        : isAccessError
+          ? 'Gemini rejected this API key or project access. Check that the key is valid, the Gemini API is enabled, and key restrictions allow this server.'
+          : isModelError
+            ? 'The configured Gemini model is unavailable for this API key or project.'
+            : 'Gemini text generation failed. Check the diagnostic detail below.',
       details: error?.message,
     });
   }

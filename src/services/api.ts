@@ -49,7 +49,9 @@ export async function askAiTutor(params: {
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error || `Server responded with status ${res.status}`);
+    const message = errorData.error || `Server responded with status ${res.status}`;
+    const details = typeof errorData.details === 'string' ? errorData.details : '';
+    throw new Error(details ? `${message}\n${details}` : message);
   }
 
   const data = await res.json();

@@ -125,8 +125,8 @@ Without a sorted order, moving pointers loses this monotonic property, reducing 
     const rawQuestion = (queryText || inputText).trim();
     if (!rawQuestion || isLoading) return;
 
-    speechEngine.unlockAudio();
     speechEngine.interrupt();
+    speechEngine.unlockAudio();
 
     setInputText('');
     setIsLoading(true);

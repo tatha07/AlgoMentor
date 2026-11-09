@@ -44,6 +44,7 @@ export interface AudioPlaybackState {
   isPlaying: boolean;
   isPaused: boolean;
   isLoadingAudio: boolean;
+  fallbackNotice: string | null;
   speakingMessageId: string | null;
   activeVoiceId: GnaniVoiceId;
   playbackProgress: number; // 0 to 100
@@ -63,6 +64,7 @@ class GnaniSpeechEngine {
     isPlaying: false,
     isPaused: false,
     isLoadingAudio: false,
+    fallbackNotice: null,
     speakingMessageId: null,
     activeVoiceId: 'classic',
     playbackProgress: 0,
@@ -89,10 +91,54 @@ class GnaniSpeechEngine {
   public unlockAudio() {
     if (typeof window === 'undefined') return;
     try {
-      if (!this.audioElement) {
-        this.audioElement = new Audio();
-      }
-    } catch {}
+      const audio = this.audioElement || new Audio();
+      this.audioElement = audio;
+      const sampleRate = 8000;
+      const frameCount = 800;
+      const wav = new ArrayBuffer(44 + frameCount * 2);
+      const view = new DataView(wav);
+      const writeString = (offset: number, value: string) => {
+        for (let index = 0; index < value.length; index++) {
+          view.setUint8(offset + index, value.charCodeAt(index));
+        }
+      };
+
+      writeString(0, 'RIFF');
+      view.setUint32(4, 36 + frameCount * 2, true);
+      writeString(8, 'WAVE');
+      writeString(12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, 1, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * 2, true);
+      view.setUint16(32, 2, true);
+      view.setUint16(34, 16, true);
+      writeString(36, 'data');
+      view.setUint32(40, frameCount * 2, true);
+
+      const url = URL.createObjectURL(new Blob([wav], { type: 'audio/wav' }));
+      audio.muted = false;
+      audio.src = url;
+      const releaseSilentAudio = () => {
+        if (audio.src === url) {
+          audio.pause();
+          audio.removeAttribute('src');
+          audio.load();
+          audio.muted = false;
+        }
+        URL.revokeObjectURL(url);
+      };
+
+      void audio.play().then(
+        () => window.setTimeout(releaseSilentAudio, 100),
+        releaseSilentAudio
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Audio could not be initialized.';
+      this.state.fallbackNotice = message;
+      this.notify();
+    }
   }
 
   /**
@@ -104,8 +150,13 @@ class GnaniSpeechEngine {
       try {
         this.audioElement.pause();
         this.audioElement.currentTime = 0;
+        this.audioElement.onended = null;
+        this.audioElement.onerror = null;
+        this.audioElement.oncanplay = null;
+        this.audioElement.ontimeupdate = null;
+        this.audioElement.removeAttribute('src');
+        this.audioElement.load();
       } catch {}
-      this.audioElement = null;
     }
     if (this.currentObjectUrl) {
       try {
@@ -194,6 +245,7 @@ class GnaniSpeechEngine {
       isPlaying: false,
       isPaused: false,
       isLoadingAudio: true,
+      fallbackNotice: null,
       speakingMessageId: messageId || 'preview',
       activeVoiceId: voiceId,
       playbackProgress: 0,
@@ -210,8 +262,11 @@ class GnaniSpeechEngine {
         this.currentEngine = 'gnani-server';
         const url = URL.createObjectURL(blob);
         this.currentObjectUrl = url;
-        const audio = new Audio(url);
+        const audio = this.audioElement || new Audio();
         this.audioElement = audio;
+        audio.muted = false;
+        audio.src = url;
+        audio.load();
 
         audio.playbackRate = effectiveSpeed;
 
@@ -227,7 +282,8 @@ class GnaniSpeechEngine {
         };
 
         audio.onerror = () => {
-          console.warn('Gnani server audio playback failed, falling back to Web Speech API');
+          this.state.fallbackNotice = 'Gnani audio could not be played. Trying your browser voice instead.';
+          this.notify();
           this.playWithWebSpeech(cleanText, voiceConfig, messageId, effectiveSpeed);
         };
 
@@ -245,7 +301,10 @@ class GnaniSpeechEngine {
         return;
       }
     } catch (err) {
-      console.info('Gnani server speech synthesis not reachable or key absent, using browser Web Speech API:', err);
+      const message = err instanceof Error ? err.message : 'The speech service returned an unknown error.';
+      this.state.fallbackNotice = `Gnani voice unavailable: ${message}. Using your browser voice instead.`;
+      this.notify();
+      console.warn('Gnani server speech synthesis failed:', err);
     }
 
     // Fallback: Web Speech API in the browser
@@ -298,6 +357,8 @@ class GnaniSpeechEngine {
       };
 
       utterance.onerror = () => {
+        this.state.fallbackNotice = 'Browser voice playback failed. Check that audio is enabled in your browser.';
+        this.notify();
         this.interrupt();
       };
 
