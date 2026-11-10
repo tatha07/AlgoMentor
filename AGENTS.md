@@ -8,8 +8,9 @@
 - `npm start` — run production build (`node dist/server.cjs`)
 - `npm run lint` — typecheck only (`tsc --noEmit`). No separate linter or formatter.
 - `npm run clean` — remove `dist/` and `server.js`
+- `npm test` — run unit and security test suite (`tsx --test tests/**/*.test.ts`)
 
-No test framework is configured. No CI pipeline exists.
+Test framework uses Node.js native `node:test` runner via `tsx --test`.
 
 ## Architecture
 

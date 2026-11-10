@@ -1,11 +1,12 @@
 import express, { Request, Response } from 'express';
 import http from 'http';
 import path from 'path';
-import vm from 'vm';
 import dotenv from 'dotenv';
 import { WebSocketServer, WebSocket } from 'ws';
 import { GoogleGenAI, Type } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
+import { executeJavaScriptSandbox } from './src/lib/sandbox';
+import { collabManager } from './src/lib/collabStore';
 
 dotenv.config();
 
@@ -41,79 +42,6 @@ const MODEL_FALLBACK_CHAIN = ['gemini-3.7-flash', 'gemini-3.6-flash'];
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function splitTopLevelSegments(input: string): string[] {
-  const segments: string[] = [];
-  let current = '';
-  let depth = 0;
-  let quote: '"' | "'" | null = null;
-  let escaped = false;
-
-  for (const char of input) {
-    if (escaped) {
-      current += char;
-      escaped = false;
-      continue;
-    }
-
-    if (quote) {
-      current += char;
-      if (char === '\\') {
-        escaped = true;
-      } else if (char === quote) {
-        quote = null;
-      }
-      continue;
-    }
-
-    if (char === '"' || char === "'") {
-      quote = char;
-      current += char;
-      continue;
-    }
-
-    if (char === '[' || char === '{' || char === '(') {
-      depth += 1;
-      current += char;
-      continue;
-    }
-
-    if (char === ']' || char === '}' || char === ')') {
-      depth = Math.max(depth - 1, 0);
-      current += char;
-      continue;
-    }
-
-    if (char === ',' && depth === 0) {
-      const trimmed = current.trim();
-      if (trimmed) segments.push(trimmed);
-      current = '';
-      continue;
-    }
-
-    current += char;
-  }
-
-  const finalTrimmed = current.trim();
-  if (finalTrimmed) segments.push(finalTrimmed);
-
-  return segments;
-}
-
-function parseSandboxLiteral(rawValue: string): any {
-  const trimmed = rawValue.trim();
-  if (!trimmed) return undefined;
-
-  try {
-    return JSON.parse(trimmed);
-  } catch {
-    try {
-      return Function(`"use strict"; return (${trimmed});`)();
-    } catch {
-      return trimmed;
-    }
-  }
 }
 
 /**
@@ -168,124 +96,7 @@ async function generateContentWithRetry(
   // All models and retries exhausted
   throw lastError;
 }
-
-// In-Memory Real-Time Collaboration Store
-interface CollabUser {
-  userId: string;
-  userName: string;
-  color: string;
-}
-
-interface CollabRoom {
-  id: string;
-  name: string;
-  problemId: string;
-  problemTitle: string;
-  language: 'javascript' | 'python' | 'cpp' | 'java';
-  code: string;
-  clients: Set<WebSocket>;
-  users: Map<string, CollabUser>;
-  messages: {
-    id: string;
-    userId: string;
-    userName: string;
-    text: string;
-    timestamp: string;
-  }[];
-  createdAt: string;
-}
-
-const collabRooms = new Map<string, CollabRoom>();
-
-// Prepopulate initial active study rooms
-collabRooms.set('room-two-sum-study', {
-  id: 'room-two-sum-study',
-  name: 'Two Sum & Hash Maps Deep Dive',
-  problemId: 'two-sum',
-  problemTitle: 'Two Sum',
-  language: 'javascript',
-  code: `/**
- * Solves Two Sum in O(n) time using Hash Map.
- * @param {number[]} nums
- * @param {number} target
- * @return {number[]}
- */
-function twoSum(nums, target) {
-  const map = new Map();
-  for (let i = 0; i < nums.length; i++) {
-    const complement = target - nums[i];
-    if (map.has(complement)) {
-      return [map.get(complement), i];
-    }
-    map.set(nums[i], i);
-  }
-  return [];
-}
-
-console.log('Result:', twoSum([2, 7, 11, 15], 9));
-`,
-  clients: new Set(),
-  users: new Map(),
-  messages: [
-    {
-      id: 'm1',
-      userId: 'system',
-      userName: 'AlgoMentor Bot',
-      text: 'Welcome to the Two Sum study room! Collaborate and run tests in real-time.',
-      timestamp: new Date(Date.now() - 3600000).toISOString(),
-    },
-  ],
-  createdAt: new Date().toISOString(),
-});
-
-collabRooms.set('room-graph-study', {
-  id: 'room-graph-study',
-  name: 'Graphs: BFS/DFS Flood Fill Team',
-  problemId: 'num-islands',
-  problemTitle: 'Number of Islands',
-  language: 'python',
-  code: `# Number of Islands - BFS / DFS Flood Fill
-class Solution:
-    def numIslands(self, grid: list[list[str]]) -> int:
-        if not grid:
-            return 0
-        
-        rows, cols = len(grid), len(grid[0])
-        islands = 0
-        
-        def dfs(r, c):
-            if r < 0 or c < 0 or r >= rows or c >= cols or grid[r][c] != '1':
-                return
-            grid[r][c] = '0' # mark visited
-            dfs(r + 1, c)
-            dfs(r - 1, c)
-            dfs(r, c + 1)
-            dfs(r, c - 1)
-
-        for r in range(rows):
-            for c in range(cols):
-                if grid[r][c] == '1':
-                    islands += 1
-                    dfs(r, c)
-                    
-        return islands
-
-sol = Solution()
-print("Total Islands:", sol.numIslands([["1","1","0"],["1","1","0"],["0","0","1"]]))
-`,
-  clients: new Set(),
-  users: new Map(),
-  messages: [
-    {
-      id: 'm2',
-      userId: 'system',
-      userName: 'AlgoMentor Bot',
-      text: 'Graph room active. Try mutating 2D grid matrix in-place vs visited set!',
-      timestamp: new Date(Date.now() - 1800000).toISOString(),
-    },
-  ],
-  createdAt: new Date().toISOString(),
-});
+// Real-Time Collaboration Store is managed via collabManager (src/lib/collabStore.ts)
 
 const SYSTEM_INSTRUCTION_DSA_TUTOR = `You are AlgoMentor, an elite Senior Software Engineer and expert Data Structures & Algorithms (DSA) instructor.
 
@@ -934,140 +745,9 @@ app.post('/api/sandbox/run', async (req: Request, res: Response) => {
 
     // 1. JavaScript native isolated VM execution
     if (language === 'javascript') {
-      try {
-        const logs: string[] = [];
-        const sandbox: Record<string, any> = {
-          console: {
-            log: (...args: any[]) => logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')),
-            warn: (...args: any[]) => logs.push('[WARN] ' + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')),
-            error: (...args: any[]) => logs.push('[ERROR] ' + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')),
-          },
-          Math,
-          Date,
-          Array,
-          Object,
-          String,
-          Number,
-          Boolean,
-          Set,
-          Map,
-          RegExp,
-          JSON,
-          parseInt,
-          parseFloat,
-          isNaN,
-          isFinite,
-        };
-
-        const context = vm.createContext(sandbox);
-        const script = new vm.Script(code, { filename: 'solution.js' });
-        script.runInContext(context, { timeout: 2500 });
-
-        const executionTimeMs = Date.now() - startTime;
-        
-        // Evaluate test cases if testCases are supplied
-        let testResults: any[] = [];
-        if (Array.isArray(testCases) && testCases.length > 0) {
-          testResults = testCases.map((tc, index) => {
-            try {
-              const assignments = splitTopLevelSegments(tc.input).map((part: string) => {
-                const eqIndex = part.indexOf('=');
-                if (eqIndex === -1) {
-                  return { name: '', value: part.trim() };
-                }
-                return {
-                  name: part.slice(0, eqIndex).trim(),
-                  value: part.slice(eqIndex + 1).trim(),
-                };
-              }).filter((entry) => entry.name && entry.value);
-
-              const paramNames = assignments.map((entry) => entry.name);
-              const assignmentStatements = assignments.map((entry) => `const ${entry.name} = ${entry.value};`).join('\n');
-
-              const testHarness = `
-                (function() {
-                  ${code}
-                  const candidateFns = ['twoSum', 'maxArea', 'search', 'numIslands', 'coinChange', 'isPalindrome', 'maxProfit', 'isValid', 'merge', 'reverseList', 'lengthOfLongestSubstring', 'climbStairs'];
-                  let fn = null;
-                  for (const name of candidateFns) {
-                    try {
-                      if (typeof eval(name) === 'function') {
-                        fn = eval(name);
-                        break;
-                      }
-                    } catch {}
-                  }
-                  if (!fn) {
-                    const match = (${JSON.stringify(code)}).match(/function\\s+([a-zA-Z0-9_$]+)\\s*\\(/) || 
-                                  (${JSON.stringify(code)}).match(/(?:const|let|var)\\s+([a-zA-Z0-9_$]+)\\s*=\\s*(?:function|\\([^)]*\\)\\s*=>)/);
-                    if (match) {
-                      try {
-                        if (typeof eval(match[1]) === 'function') fn = eval(match[1]);
-                      } catch {}
-                    }
-                  }
-                  if (typeof fn !== 'function') {
-                    throw new Error('Solution function not defined or not callable.');
-                  }
-                  ${assignmentStatements}
-                  const result = fn(${paramNames.join(', ')});
-                  return result;
-                })()
-              `;
-              const testScript = new vm.Script(testHarness, { filename: `test_${index}.js` });
-              const result = testScript.runInContext(context, { timeout: 1500 });
-              const expectedValue = parseSandboxLiteral(tc.expected);
-              const actualValue = typeof result === 'undefined' ? undefined : result;
-              const actualJson = typeof actualValue === 'undefined' ? 'undefined' : JSON.stringify(actualValue);
-              const expectedJson = typeof expectedValue === 'undefined' ? 'undefined' : JSON.stringify(expectedValue);
-
-              let passed = actualJson === expectedJson;
-              if (!passed && typeof actualValue === 'string' && typeof expectedValue === 'string') {
-                passed = actualValue === expectedValue;
-              }
-              if (!passed && typeof actualValue === 'number' && typeof expectedValue === 'number') {
-                passed = actualValue === expectedValue;
-              }
-
-              return {
-                testCaseIndex: index,
-                input: tc.input,
-                expected: tc.expected,
-                actual: actualJson,
-                passed: Boolean(passed),
-              };
-            } catch (tcErr: any) {
-              return {
-                testCaseIndex: index,
-                input: tc.input,
-                expected: tc.expected,
-                actual: tcErr?.message || 'Error evaluating case',
-                passed: false,
-              };
-            }
-          });
-        }
-
-        const anyFailed = testResults.length > 0 && testResults.some(t => !t.passed);
-        const finalStatus = anyFailed ? 'wrong_answer' : 'success';
-
-        res.json({
-          stdout: logs.length > 0 ? logs.join('\n') : 'Code executed cleanly with no console output.',
-          executionTimeMs,
-          status: finalStatus,
-          testResults: testResults.length > 0 ? testResults : undefined,
-        });
-        return;
-      } catch (vmErr: any) {
-        const executionTimeMs = Date.now() - startTime;
-        res.json({
-          stdout: '',
-          stderr: vmErr?.message || String(vmErr),
-          executionTimeMs,
-          status: 'error',
-        });
-        return;
-      }
+      const sandboxResult = executeJavaScriptSandbox(code, testCases);
+      res.json(sandboxResult);
+      return;
     }
 
     // 2. Python, C++, Java execution simulation & compiler verification via Gemini
@@ -1153,50 +833,25 @@ Instructions:
 
 // 7. Collaboration Rooms REST Endpoints
 app.get('/api/collab/rooms', (req: Request, res: Response) => {
-  const roomsList = Array.from(collabRooms.values()).map(r => ({
-    id: r.id,
-    name: r.name,
-    problemId: r.problemId,
-    problemTitle: r.problemTitle,
-    language: r.language,
-    activeUsersCount: r.users.size,
-    messageCount: r.messages.length,
-    createdAt: r.createdAt,
-  }));
-  res.json({ rooms: roomsList });
+  res.json({ rooms: collabManager.getRoomsList() });
 });
 
 app.post('/api/collab/rooms', (req: Request, res: Response) => {
-  const { name, problemId = 'two-sum', problemTitle = 'Two Sum', language = 'javascript', starterCode = '' } = req.body;
-  if (!name) {
-    res.status(400).json({ error: 'Room name is required.' });
-    return;
-  }
-
-  const roomId = 'room-' + Math.random().toString(36).substring(2, 9);
-  const newRoom: CollabRoom = {
-    id: roomId,
+  const { name, problemId, problemTitle, language, starterCode } = req.body;
+  const result = collabManager.createRoom({
     name,
     problemId,
     problemTitle,
     language,
-    code: starterCode || `// Collaborative session for ${problemTitle}\n\nfunction solution() {\n  // Code together in real-time\n}\n`,
-    clients: new Set(),
-    users: new Map(),
-    messages: [
-      {
-        id: 'msg-' + Date.now(),
-        userId: 'system',
-        userName: 'AlgoMentor Bot',
-        text: `Room "${name}" created. Share room ID: ${roomId} with peers to code together!`,
-        timestamp: new Date().toISOString(),
-      },
-    ],
-    createdAt: new Date().toISOString(),
-  };
+    starterCode,
+  });
 
-  collabRooms.set(roomId, newRoom);
-  res.status(201).json({ room: { id: newRoom.id, name: newRoom.name, problemId: newRoom.problemId } });
+  if (result.error || !result.room) {
+    res.status(400).json({ error: result.error || 'Failed to create room.' });
+    return;
+  }
+
+  res.status(201).json({ room: { id: result.room.id, name: result.room.name, problemId: result.room.problemId } });
 });
 
 // Vite middleware & WebSocket HTTP server setup
@@ -1221,23 +876,7 @@ async function startServer() {
           currentRoomId = safeRoomId;
           currentUserId = safeUserId || 'anon-' + Math.random().toString(36).substring(2, 6);
 
-          let room = collabRooms.get(safeRoomId);
-          if (!room) {
-            // Auto-create room if not found
-            room = {
-              id: safeRoomId,
-              name: `Study Room #${safeRoomId.substring(0, 6)}`,
-              problemId: typeof problemId === 'string' && problemId.trim() ? problemId : 'two-sum',
-              problemTitle: typeof problemTitle === 'string' && problemTitle.trim() ? problemTitle : 'Two Sum',
-              language: (typeof language === 'string' && language.trim()) ? (language as any) : 'javascript',
-              code: `// Real-Time Collaborative Room\n// Room ID: ${safeRoomId}\n\nfunction solve() {\n  // Type code here...\n}\n`,
-              clients: new Set(),
-              users: new Map(),
-              messages: [],
-              createdAt: new Date().toISOString(),
-            };
-            collabRooms.set(safeRoomId, room);
-          }
+          const room = collabManager.getOrCreateRoom(safeRoomId, `Study Room #${safeRoomId.substring(0, 6)}`);
 
           room.clients.add(ws);
           room.users.set(currentUserId, {
@@ -1270,9 +909,9 @@ async function startServer() {
             }
           });
         } else if (type === 'code_change' && currentRoomId) {
-          const room = collabRooms.get(currentRoomId);
+          const room = collabManager.getRoom(currentRoomId);
           if (room) {
-            room.code = code || '';
+            collabManager.updateCode(currentRoomId, code || '');
             // Broadcast to other peers in room
             room.clients.forEach(client => {
               if (client !== ws && client.readyState === WebSocket.OPEN) {
@@ -1285,9 +924,9 @@ async function startServer() {
             });
           }
         } else if (type === 'language_change' && currentRoomId) {
-          const room = collabRooms.get(currentRoomId);
+          const room = collabManager.getRoom(currentRoomId);
           if (room) {
-            room.language = language;
+            collabManager.updateLanguage(currentRoomId, language);
             room.clients.forEach(client => {
               if (client !== ws && client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify({
@@ -1298,11 +937,11 @@ async function startServer() {
             });
           }
         } else if (type === 'problem_change' && currentRoomId) {
-          const room = collabRooms.get(currentRoomId);
+          const room = collabManager.getRoom(currentRoomId);
           if (room) {
             room.problemId = problemId;
             room.problemTitle = problemTitle;
-            if (code) room.code = code;
+            if (code) collabManager.updateCode(currentRoomId, code);
             room.clients.forEach(client => {
               if (client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify({
@@ -1315,29 +954,27 @@ async function startServer() {
             });
           }
         } else if (type === 'chat_message' && currentRoomId) {
-          const room = collabRooms.get(currentRoomId);
+          const room = collabManager.getRoom(currentRoomId);
           if (room) {
-            const newMsg = {
-              id: 'msg-' + Date.now(),
+            const newMsg = collabManager.addChatMessage(currentRoomId, {
               userId: userId || 'user',
               userName: userName || 'Peer',
               text: text || '',
-              timestamp: new Date().toISOString(),
-            };
-            room.messages.push(newMsg);
-            if (room.messages.length > 100) room.messages.shift();
-
-            room.clients.forEach(client => {
-              if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({
-                  type: 'new_chat_message',
-                  message: newMsg,
-                }));
-              }
             });
+
+            if (newMsg) {
+              room.clients.forEach(client => {
+                if (client.readyState === WebSocket.OPEN) {
+                  client.send(JSON.stringify({
+                    type: 'new_chat_message',
+                    message: newMsg,
+                  }));
+                }
+              });
+            }
           }
         } else if (type === 'run_code_sync' && currentRoomId) {
-          const room = collabRooms.get(currentRoomId);
+          const room = collabManager.getRoom(currentRoomId);
           if (room) {
             room.clients.forEach(client => {
               if (client.readyState === WebSocket.OPEN) {
@@ -1357,7 +994,7 @@ async function startServer() {
 
     ws.on('close', () => {
       if (currentRoomId && currentUserId) {
-        const room = collabRooms.get(currentRoomId);
+        const room = collabManager.getRoom(currentRoomId);
         if (room) {
           room.clients.delete(ws);
           room.users.delete(currentUserId);
