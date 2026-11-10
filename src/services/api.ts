@@ -40,7 +40,7 @@ export async function askAiTutor(params: {
   mode?: string;
   voicePersona?: string;
   preferredLanguage?: string;
-}): Promise<string> {
+}, onChunk?: (text: string) => void): Promise<string> {
   const res = await fetch('/api/tutor/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -54,8 +54,70 @@ export async function askAiTutor(params: {
     throw new Error(details ? `${message}\n${details}` : message);
   }
 
-  const data = await res.json();
-  return data.reply;
+  if (!res.body) {
+    throw new Error('Tutor response stream is unavailable.');
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let reply = '';
+
+  const processEvents = (final = false) => {
+    let separatorIndex = buffer.indexOf('\n\n');
+    while (separatorIndex !== -1) {
+      const event = buffer.slice(0, separatorIndex);
+      buffer = buffer.slice(separatorIndex + 2);
+      processEvent(event);
+      separatorIndex = buffer.indexOf('\n\n');
+    }
+
+    if (final && buffer.trim()) {
+      processEvent(buffer);
+      buffer = '';
+    }
+  };
+
+  const processEvent = (event: string) => {
+    const lines = event.split(/\r?\n/);
+    const eventType = lines.find(line => line.startsWith('event:'))?.slice(6).trim();
+    const data = lines
+      .filter(line => line.startsWith('data:'))
+      .map(line => line.slice(5).trim())
+      .join('\n');
+
+    if (!data || eventType === 'done') return;
+
+    const payload = JSON.parse(data) as { text?: string; error?: string };
+    if (eventType === 'error') {
+      throw new Error(payload.error || 'Tutor response stream failed.');
+    }
+
+    if (payload.text) {
+      reply += payload.text;
+      onChunk?.(payload.text);
+    }
+  };
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      processEvents();
+    }
+
+    buffer += decoder.decode();
+    processEvents(true);
+  } finally {
+    reader.releaseLock();
+  }
+
+  if (!reply) {
+    throw new Error('Tutor returned an empty response.');
+  }
+
+  return reply;
 }
 
 export async function getProgressiveHint(params: {

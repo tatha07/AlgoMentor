@@ -156,10 +156,18 @@ What concept or LeetCode problem are we tackling right now?`,
     setIsLoading(true);
 
     try {
-      const historyPayload = messages.map(m => ({
+      const historyPayload = messages.slice(-10).map(m => ({
         role: m.role,
         content: m.content,
       }));
+
+      const assistantMessageId = `gnani-${Date.now()}`;
+      const assistantMessage: ChatMessage = {
+        id: assistantMessageId,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date().toISOString(),
+      };
 
       const reply = await askAiTutor({
         message: userMsgText,
@@ -170,17 +178,20 @@ What concept or LeetCode problem are we tackling right now?`,
         mode: teachingMode,
         voicePersona: selectedVoiceId,
         preferredLanguage: userProfile.preferredLanguage,
+      }, chunk => {
+        setMessages(prev => {
+          const messageExists = prev.some(message => message.id === assistantMessageId);
+          return messageExists
+            ? prev.map(message => message.id === assistantMessageId
+              ? { ...message, content: message.content + chunk }
+              : message)
+            : [...prev, { ...assistantMessage, content: chunk }];
+        });
       });
 
-      const assistantMessageId = `gnani-${Date.now()}`;
-      const assistantMessage: ChatMessage = {
-        id: assistantMessageId,
-        role: 'assistant',
-        content: reply,
-        timestamp: new Date().toISOString(),
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages(prev => prev.map(message =>
+        message.id === assistantMessageId ? { ...message, content: reply } : message
+      ));
 
       if (autoSpeak) {
         void speechEngine.speakText(reply, selectedVoiceId, assistantMessageId);

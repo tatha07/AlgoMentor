@@ -96,6 +96,44 @@ async function generateContentWithRetry(
   // All models and retries exhausted
   throw lastError;
 }
+
+async function streamContentWithFallback(
+  ai: GoogleGenAI,
+  paramsWithoutModel: { contents: any; config?: any; [key: string]: any },
+  onText: (text: string) => void
+) {
+  let lastError: any = null;
+
+  for (const model of MODEL_FALLBACK_CHAIN) {
+    let receivedText = false;
+    try {
+      const stream = await ai.models.generateContentStream({
+        model,
+        ...paramsWithoutModel,
+      });
+
+      for await (const chunk of stream) {
+        const text = chunk.text;
+        if (text) {
+          receivedText = true;
+          onText(text);
+        }
+      }
+
+      if (receivedText) return;
+    } catch (error: any) {
+      if (receivedText) throw error;
+
+      lastError = error;
+      const status = error?.status || error?.error?.code;
+      if (status !== 503 && status !== 429) throw error;
+      console.warn(`Gemini streaming failed on model "${model}" (status ${status}); trying fallback model.`);
+    }
+  }
+
+  throw lastError || new Error('Gemini returned an empty response.');
+}
+
 // Real-Time Collaboration Store is managed via collabManager (src/lib/collabStore.ts)
 
 const SYSTEM_INSTRUCTION_DSA_TUTOR = `You are AlgoMentor, an elite Senior Software Engineer and expert Data Structures & Algorithms (DSA) instructor.
@@ -459,19 +497,32 @@ app.post('/api/tutor/chat', async (req: Request, res: Response) => {
       parts: [{ text: contextualizedMessage }],
     });
 
-    const response = await generateContentWithRetry(ai, {
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders();
+
+    await streamContentWithFallback(ai, {
       contents,
       config: {
         systemInstruction,
         temperature: tone === 'savage' ? 0.85 : 0.65,
+        maxOutputTokens: 768,
       },
+    }, text => {
+      res.write(`data: ${JSON.stringify({ text })}\n\n`);
     });
-
-    const text = response.text || 'Unable to generate response at this time.';
-    res.json({ reply: text });
+    res.write('event: done\ndata: {}\n\n');
+    res.end();
   } catch (error: any) {
     console.error('Error in /api/tutor/chat:', error);
     const status = error?.status || error?.error?.code;
+    if (res.headersSent) {
+      res.write(`event: error\ndata: ${JSON.stringify({ error: error?.message || 'Failed to generate tutor reply.' })}\n\n`);
+      res.end();
+      return;
+    }
     if (status === 503 || status === 429) {
       res.status(503).json({
         error: 'Gemini is experiencing high demand right now. Please try again in a moment.',

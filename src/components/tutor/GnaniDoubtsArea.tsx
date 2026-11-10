@@ -164,6 +164,10 @@ Without a sorted order, moving pointers loses this monotonic property, reducing 
         mode: 'doubt',
         voicePersona: selectedVoiceId,
         preferredLanguage: userProfile.preferredLanguage,
+      }, chunk => {
+        setDoubts(prev => prev.map(doubt =>
+          doubt.id === doubtId ? { ...doubt, answer: doubt.answer + chunk } : doubt
+        ));
       });
 
       setDoubts(prev => prev.map(doubt =>
