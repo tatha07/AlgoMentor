@@ -132,6 +132,15 @@ Without a sorted order, moving pointers loses this monotonic property, reducing 
     setIsLoading(true);
 
     const doubtId = `doubt-${Date.now()}`;
+    const pendingDoubt: DoubtMessage = {
+      id: doubtId,
+      question: rawQuestion,
+      answer: '',
+      timestamp: new Date().toISOString(),
+      voicePersona: selectedVoiceId,
+    };
+    setDoubts(prev => [...prev, pendingDoubt]);
+
     let contextualizedMessage = rawQuestion;
 
     if (contextProblemTitle) {
@@ -157,29 +166,19 @@ Without a sorted order, moving pointers loses this monotonic property, reducing 
         preferredLanguage: userProfile.preferredLanguage,
       });
 
-      const newDoubt: DoubtMessage = {
-        id: doubtId,
-        question: rawQuestion,
-        answer,
-        timestamp: new Date().toISOString(),
-        voicePersona: selectedVoiceId,
-      };
-
-      setDoubts(prev => [...prev, newDoubt]);
+      setDoubts(prev => prev.map(doubt =>
+        doubt.id === doubtId ? { ...doubt, answer } : doubt
+      ));
 
       // Automatically speak the doubt explanation if auto-speak is enabled
       if (autoSpeak) {
         void speechEngine.speakText(answer, selectedVoiceId, doubtId, playbackSpeed);
       }
     } catch (err: any) {
-      const errorDoubt: DoubtMessage = {
-        id: `err-${Date.now()}`,
-        question: rawQuestion,
-        answer: `⚠️ Could not reach Gnani. Please check your network or try again: ${err?.message || 'Error'}`,
-        timestamp: new Date().toISOString(),
-        voicePersona: selectedVoiceId,
-      };
-      setDoubts(prev => [...prev, errorDoubt]);
+      const errorMessage = `⚠️ Could not reach Gnani. Please check your network or try again: ${err?.message || 'Error'}`;
+      setDoubts(prev => prev.map(doubt =>
+        doubt.id === doubtId ? { ...doubt, answer: errorMessage } : doubt
+      ));
     } finally {
       setIsLoading(false);
     }
@@ -377,7 +376,7 @@ Without a sorted order, moving pointers loses this monotonic property, reducing 
                       <span className="text-[10px] text-zinc-400">· Clarification</span>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
+                    {doubt.answer && <div className="flex items-center gap-1.5">
                       {/* Hear Explanation with Voice Button */}
                       <button
                         onClick={() => handleSpeakDoubt(doubt)}
@@ -415,16 +414,23 @@ Without a sorted order, moving pointers loses this monotonic property, reducing 
                       >
                         {copiedId === doubt.id ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                       </button>
-                    </div>
+                    </div>}
                   </div>
 
                   {/* Markdown Explanation Body */}
                   <div className="prose dark:prose-invert prose-xs sm:prose-sm max-w-none break-words leading-relaxed space-y-2 font-sans text-zinc-800 dark:text-zinc-200">
-                    <Markdown>{doubt.answer}</Markdown>
+                    {doubt.answer ? (
+                      <Markdown>{doubt.answer}</Markdown>
+                    ) : (
+                      <div className="flex items-center gap-2 text-xs font-mono text-zinc-600 dark:text-zinc-400">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-orange-500" />
+                        <span>{activeVoiceConfig.name} is preparing your doubt explanation...</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Suggested Follow-up Doubt Chips */}
-                  <div className="mt-3 pt-2 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center gap-1.5 flex-wrap">
+                  {doubt.answer && <div className="mt-3 pt-2 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center gap-1.5 flex-wrap">
                     <span className="text-[10px] font-mono text-zinc-400">Ask follow-up:</span>
                     <button
                       onClick={() => handleAskDoubt('Explain this in simpler terms with a real-life analogy.')}
@@ -444,24 +450,12 @@ Without a sorted order, moving pointers loses this monotonic property, reducing 
                     >
                       Concrete Trace
                     </button>
-                  </div>
+                  </div>}
                 </div>
               </div>
             </div>
           );
         })}
-
-        {isLoading && (
-          <div className="flex items-start gap-2.5 animate-in fade-in">
-            <div className="w-7 h-7 rounded-lg bg-orange-600 text-white flex items-center justify-center shrink-0 shadow-sm animate-pulse">
-              <Flame className="w-4 h-4 fill-current" />
-            </div>
-            <div className="p-3 rounded-xl bg-white dark:bg-[#0c0d0e] border border-zinc-200 dark:border-zinc-800 flex items-center gap-2 text-xs font-mono text-zinc-600 dark:text-zinc-400">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-orange-500" />
-              <span>{activeVoiceConfig.name} is preparing your doubt explanation...</span>
-            </div>
-          </div>
-        )}
 
         <div ref={doubtsEndRef} />
       </div>

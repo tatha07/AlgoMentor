@@ -43,6 +43,79 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function splitTopLevelSegments(input: string): string[] {
+  const segments: string[] = [];
+  let current = '';
+  let depth = 0;
+  let quote: '"' | "'" | null = null;
+  let escaped = false;
+
+  for (const char of input) {
+    if (escaped) {
+      current += char;
+      escaped = false;
+      continue;
+    }
+
+    if (quote) {
+      current += char;
+      if (char === '\\') {
+        escaped = true;
+      } else if (char === quote) {
+        quote = null;
+      }
+      continue;
+    }
+
+    if (char === '"' || char === "'") {
+      quote = char;
+      current += char;
+      continue;
+    }
+
+    if (char === '[' || char === '{' || char === '(') {
+      depth += 1;
+      current += char;
+      continue;
+    }
+
+    if (char === ']' || char === '}' || char === ')') {
+      depth = Math.max(depth - 1, 0);
+      current += char;
+      continue;
+    }
+
+    if (char === ',' && depth === 0) {
+      const trimmed = current.trim();
+      if (trimmed) segments.push(trimmed);
+      current = '';
+      continue;
+    }
+
+    current += char;
+  }
+
+  const finalTrimmed = current.trim();
+  if (finalTrimmed) segments.push(finalTrimmed);
+
+  return segments;
+}
+
+function parseSandboxLiteral(rawValue: string): any {
+  const trimmed = rawValue.trim();
+  if (!trimmed) return undefined;
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    try {
+      return Function(`"use strict"; return (${trimmed});`)();
+    } catch {
+      return trimmed;
+    }
+  }
+}
+
 /**
  * Calls ai.models.generateContent with automatic retry on transient errors
  * (503 UNAVAILABLE / 429 RESOURCE_EXHAUSTED), and falls back through
@@ -897,8 +970,20 @@ app.post('/api/sandbox/run', async (req: Request, res: Response) => {
         if (Array.isArray(testCases) && testCases.length > 0) {
           testResults = testCases.map((tc, index) => {
             try {
-              // Try evaluating test expression in the same context
-              const paramNames = tc.input.split(',').map((part: string) => part.split('=')[0].trim()).filter(Boolean);
+              const assignments = splitTopLevelSegments(tc.input).map((part: string) => {
+                const eqIndex = part.indexOf('=');
+                if (eqIndex === -1) {
+                  return { name: '', value: part.trim() };
+                }
+                return {
+                  name: part.slice(0, eqIndex).trim(),
+                  value: part.slice(eqIndex + 1).trim(),
+                };
+              }).filter((entry) => entry.name && entry.value);
+
+              const paramNames = assignments.map((entry) => entry.name);
+              const assignmentStatements = assignments.map((entry) => `const ${entry.name} = ${entry.value};`).join('\n');
+
               const testHarness = `
                 (function() {
                   ${code}
@@ -924,29 +1009,31 @@ app.post('/api/sandbox/run', async (req: Request, res: Response) => {
                   if (typeof fn !== 'function') {
                     throw new Error('Solution function not defined or not callable.');
                   }
-                  let ${tc.input};
+                  ${assignmentStatements}
                   const result = fn(${paramNames.join(', ')});
                   return result;
                 })()
               `;
               const testScript = new vm.Script(testHarness, { filename: `test_${index}.js` });
               const result = testScript.runInContext(context, { timeout: 1500 });
-              const actualStr = JSON.stringify(result) ?? 'undefined';
-              
-              // Normalize expected and actual for comparison
-              const normalizedExpected = tc.expected.trim();
-              let passed = actualStr === normalizedExpected;
-              if (!passed) {
-                try {
-                  passed = JSON.stringify(JSON.parse(actualStr)) === JSON.stringify(JSON.parse(normalizedExpected));
-                } catch {}
+              const expectedValue = parseSandboxLiteral(tc.expected);
+              const actualValue = typeof result === 'undefined' ? undefined : result;
+              const actualJson = typeof actualValue === 'undefined' ? 'undefined' : JSON.stringify(actualValue);
+              const expectedJson = typeof expectedValue === 'undefined' ? 'undefined' : JSON.stringify(expectedValue);
+
+              let passed = actualJson === expectedJson;
+              if (!passed && typeof actualValue === 'string' && typeof expectedValue === 'string') {
+                passed = actualValue === expectedValue;
+              }
+              if (!passed && typeof actualValue === 'number' && typeof expectedValue === 'number') {
+                passed = actualValue === expectedValue;
               }
 
               return {
                 testCaseIndex: index,
                 input: tc.input,
                 expected: tc.expected,
-                actual: actualStr,
+                actual: actualJson,
                 passed: Boolean(passed),
               };
             } catch (tcErr: any) {

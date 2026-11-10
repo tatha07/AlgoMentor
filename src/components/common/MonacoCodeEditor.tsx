@@ -347,7 +347,7 @@ export const MonacoCodeEditor: React.FC<MonacoCodeEditorProps> = ({
 
       {/* Monaco Editor Container */}
       <div 
-        className="w-full relative flex-1 min-h-[160px]"
+        className={`w-full relative ${isHeight100 ? 'flex-1 min-h-0' : 'shrink-0 min-h-[160px]'}`}
         style={
           isFullscreen 
             ? { height: isConsoleOpen ? (isConsoleExpanded ? 'calc(100vh - 460px)' : 'calc(100vh - 340px)') : 'calc(100vh - 60px)' }
